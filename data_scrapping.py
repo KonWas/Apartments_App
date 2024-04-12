@@ -79,8 +79,65 @@ import time
 def get_offers(web_site_content):
     """Pobiera oferty z zawartości strony."""
     soup = BeautifulSoup(web_site_content, 'html.parser')
-    offers = soup.find_all('div', {'class': 'offer-item-details'})
-    return offers
+    offers = soup.find_all('div', class_=lambda value: value and value.startswith('tile tile-tile'))[:-1]
+    offer_links = [offer.find('a', class_='tabCtrl')['href'] for offer in offers if offer.find('a', class_='tabCtrl')]
+    return offer_links
+
+def scrape_offer_details(url):
+    """Scrapuje szczegóły oferty z podanego adresu URL."""
+    content = open_website(url)
+    if content is not None:
+        soup = BeautifulSoup(content, 'html.parser')
+        # Extracting the offer header/title
+        title = soup.find('h2', class_='header-e').text.strip() if soup.find('h2', class_='header-e') else 'Not provided'
+
+        # Extracting the primary price
+        primary_price = soup.find('span', class_='info-primary-price').text.strip().replace('\xa0', ' ') if soup.find('span', class_='info-primary-price') else 'Not provided'
+
+        # Extracting the area
+        area = soup.find('span', class_='info-area').text.strip().replace('\xa0', ' ') if soup.find('span', class_='info-area') else 'Not provided'
+
+        # Extracting the level of interest
+        interest_level = soup.find('p', class_='par-a').text.strip() if soup.find('p', class_='par-a') else 'Not provided'
+
+        # Basic information
+        basic_info = soup.find_all('div', class_='box__attributes--content')
+        basic_info = [info.get_text(separator=" ").strip() for info in basic_info]
+
+        # Extracting details from the list
+        # details_list = soup.find('ul', class_='list-h')
+        # details = {}
+        # for li in details_list.find_all('li'):
+        #     strong_tag = li.find('strong')
+        #     if strong_tag and strong_tag.next_sibling:
+        #         key = strong_tag.text.strip().rstrip(':')
+        #         value = strong_tag.next_sibling.strip()
+        #         details[key] = value
+        details_lists = soup.find_all('ul', class_=lambda value: value and value.startswith('list-h'))
+        details = {}
+        for details_list in details_lists:
+            for li in details_list.find_all('li'):
+                # Splitting based on the structure of the 'li' elements
+                key = li.find('strong').text.strip().rstrip(':') if li.find('strong') else None
+                value = li.find('span').text.strip() if li.find('span') else 'Not provided'
+                if key:
+                    details[key] = value
+
+        offer_details = {
+            'title': title,
+            'price': primary_price,
+            'area': area,
+            'interest_level': interest_level,
+            'basic_info': basic_info,
+            'details': details
+        }
+    return offer_details
+
+def save_to_csv(offer_details):
+    """Zapisuje szczegóły oferty do pliku CSV."""
+    if offer_details:
+        df = pd.DataFrame([offer_details])
+        df.to_csv('offer_details.csv', index=False, mode='a', header=False)
 
 def open_website(url, max_retries=5, delay=5):
     """Otwiera stronę internetową i zwraca jej zawartość."""
@@ -96,7 +153,7 @@ def open_website(url, max_retries=5, delay=5):
             
             # Sprawdzanie, czy zapytanie się powiodło
             if response.status_code == 200:
-                print("Sukces! Strona została otwarta.")
+                # print("Sukces! Strona została otwarta.")
                 return response.content
             elif response.status_code == 503:
                 # Obsługa tymczasowej niedostępności serwera
@@ -115,14 +172,27 @@ def open_website(url, max_retries=5, delay=5):
     return None
 
 # Adres URL strony z ogłoszeniami
-universal_url = "https://wroclaw.nieruchomosci-online.pl/szukaj.html?3,mieszkanie,sprzedaz,,Wrocław&q={}"
+# universal_url = "https://wroclaw.nieruchomosci-online.pl/szukaj.html?3,mieszkanie,sprzedaz,,Wrocław&q={}"
+universal_url = "https://wroclaw.nieruchomosci-online.pl/szukaj.html?3,mieszkanie,sprzedaz,,Wrocław:17876&p={}&q=%7B%7D"
+
 # Tworzenie linkow wszystkich kart
-list_of_pages = [universal_url.format(i) for i in range(1, 101)]
+# Pierwsza partia linków 21-60
+list_of_pages = [universal_url.format(i) for i in range(137, 181)]
+
+# Lista wszystkich ofert
+all_offer_links = []
+#print(scrape_offer_details("https://wroclaw.nieruchomosci-online.pl/mieszkanie,z-aneksem-kuchennym/24679701.html"))
 # Wywołanie funkcji otwierającej stronę
+page_number = 137
 for url in list_of_pages:
     web_site_content = open_website(url)
     if web_site_content is not None:
-        offers = get_offers(web_site_content)
-        for offer in offers:
-            print(offer)
+        offer_links = get_offers(web_site_content)
+        # print(f"Number of offers: {len(offer_links)} On page: {url[-3:]}")
+        all_offer_links.extend(offer_links)
+        print(f"Page {page_number} scraped. Number of offers: {len(offer_links)}")
+        page_number += 1
 
+# # Scrappowanie szczegolow ofert
+for offer_link in all_offer_links:
+    save_to_csv(scrape_offer_details(offer_link))
