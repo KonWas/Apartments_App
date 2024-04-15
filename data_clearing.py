@@ -112,17 +112,20 @@ def location_to_district() -> None:
     districts = {
         "Stare Miasto": ["Stare Miasto", "Ołbin", "Wrocław", "Świdnicka", "Więzienna", "Nożownicza", "Włodkowica"],
         "Krzyki": ["Krzyki", "Partynice", "Wojszyce", "Klecina", "Borek", "Tarnogaj", "Oporów", "Jagodno", "Gaj", "Krzyk", "Księże Małe", "Księże Wielkie", "Poświętne", "Ołtaszyn", "Przedmieście Oławskie"],
-        "Fabryczna": ["Grabiszyn", "Grabiszyn-Grabiszynek", "Muchobór Wielki", "Nowy Dwór", "Fabryczna", "Gądów Mały", "Gądów-Popowice Południowe", "Muchobór Mały", "Pilczyce", "Żerniki", "Maślice", "Stabłowice", "Zakrzów"],
+        "Fabryczna": ["Fabryczna", "Grabiszyn", "Grabiszyn-Grabiszynek", "Muchobór Wielki", "Nowy Dwór", "Fabryczna", "Gądów Mały", "Gądów-Popowice Południowe", "Muchobór Mały", "Pilczyce", "Żerniki", "Maślice", "Stabłowice", "Zakrzów"],
         "Psie Pole": ["Psie Pole", "Swojczyce", "Różanka", "Kowale", "Sołtysowice", "Osobowice", "Karłowice", "Kleczków", "Lipa Piotrowska", "Popowice", "Kępa Mieszczańska", "Brochów", "Bieńkowice", "Szczepin"],
         "Śródmieście": ["Nadodrze", "Śródmieście", "Plac Grunwaldzki", "Huby", "Przedmieście Świdnickie", "Zaporoska"]
     }
-
-    for location in data['location']:
+    
+    # Change location to district only
+    def find_district(location):
         for district, locations in districts.items():
             if location in locations:
-                data['location'] = district
-                break
-    
+                return district
+        return "Inne"
+
+    data['location'] = data['location'].apply(find_district)
+
     print(data['location'].value_counts())
 
     # Save the cleaned data to a new CSV file
