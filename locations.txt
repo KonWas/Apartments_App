@@ -1,0 +1,133 @@
+Stare Miasto 1210
+Krzyki 487
+Borek 333
+Grabiszyn 242
+Przedmieście Oławskie 238
+Zakrzów 177
+Śródmieście 173
+Ołtaszyn 162
+Sołtysowice 149
+Nadodrze 130
+Maślice 126
+Stabłowice 124
+Tarnogaj 122
+Wojszyce 121
+Muchobór Wielki 118
+Szczepin 117
+Gądów Mały 113
+Nowy Dwór 112
+Partynice 105
+Grabiszyn-Grabiszynek 86
+Ołbin 79
+Księże Wielkie 76
+Psie Pole 60
+Lipa Piotrowska 56
+Jagodno 56
+Oporów 47
+Poświętne 42
+Księże Małe 40
+Zaporoska 39
+Fabryczna 37
+Wrocław 36
+Klecina 34
+Brochów 30
+Gaj 28
+Karłowice 16
+Psie  Pole 15
+Kleczków 14
+Popowice 13
+Swojczyce 13
+Kępa Mieszczańska 13
+Plac Grunwaldzki 12
+Huby 10
+Bieńkowice 10
+Przedmieście Świdnickie 9
+Różanka 9
+Leśnica 7
+Muchobór Mały 7
+Kozanów 6
+Złotniki 6
+Krzyk 5
+Bajana 4
+Powstańców Śląskich 4
+Długa 4
+Wojnów 4
+Kowale 3
+Gwiaździsta 3
+Pilczyce 3
+Księże 3
+Braterska 3
+Strachocin 3
+Żerniki 3
+Polanowice 3
+Sępolno 3
+Gnieźnieńska 3
+Krawiecka 2
+Strachowice 2
+Krzki 2
+Kiełczowska 2
+Pomorska 2
+Kromera 2
+Gajowice 2
+Wielka 1
+Oławska 1
+Jana Pawła II 1
+Stwosza 1
+Jedności Narodowej 1
+Gądów-Popowice Południowe 1
+Janickiego 1
+Rodzinna 1
+Ikara 1
+Braniborska 1
+Drzewieckiego 1
+Maślicka 1
+Zawidowska 1
+Osobowice 1
+Łaciarska 1
+Zgorzelisko 1
+Odolanowska 1
+Magellana 1
+Zielna 1
+Chudoby 1
+Krucza 1
+Tolkmicka 1
+Podolska 1
+Inowrocławska 1
+Kraszewskiego 1
+Na Polance 1
+Pawłowice 1
+Grunwaldzka 1
+Madalińskiego 1
+Boya-Żeleńskiego 1
+Dąbie 1
+Odrzańska 1
+Kaparowa 1
+Rakowiec 1
+Komuny Paryskiej 1
+Radkowska 1
+Różana 1
+Więzienna 1
+Parafialna 1
+Tęczowa 1
+Metalowców 1
+Polo 1
+Szybowcowa 1
+Bolesława Krzywoustego 1
+Bałtycka 1
+Gliniana 1
+Podwale 1
+Gagarina 1
+Przyjaźni 1
+Paulińska 1
+Prusa 1
+Nowowiejska 1
+Marszowice 1
+Biskupin 1
+Komandorska 1
+Nożownicza 1
+Świdnicka 1
+Włodkowica 1
+Orzechowa 1
+Buforowa 1
+Mieszczańska 1
+Wrocławczyka 1
