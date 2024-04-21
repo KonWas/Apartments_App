@@ -38,11 +38,19 @@ def price_area_stats_for_each_location() -> None:
         print()
 
     # Plot price vs area for each location
+    # for location in locations:
+    #     plt.figure(figsize=(10, 6))
+    #     sns.scatterplot(data=df[df['location'] == location], x='area', y='price')
+    #     plt.title(f'Price vs Area in {location}')
+    #     plt.show()
+    # Plot price vs are for each location on one figure
+
+    plt.figure(figsize=(10, 6))
     for location in locations:
-        plt.figure(figsize=(10, 6))
-        sns.scatterplot(data=df[df['location'] == location], x='area', y='price')
-        plt.title(f'Price vs Area in {location}')
-        plt.show()
+        sns.scatterplot(data=df[df['location'] == location], x='area', y='price', label=location)
+    plt.title('Price vs Area for each location')
+    plt.legend()
+    plt.show()
 
 
 if __name__ == '__main__':
@@ -64,5 +72,6 @@ if __name__ == '__main__':
 
     # Price and area statistics for each location
     price_area_stats_for_each_location()
+
 
    
