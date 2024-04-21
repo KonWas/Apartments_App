@@ -136,3 +136,6 @@ if __name__ == '__main__':
     extract_information()
     clear_format_data()
     location_to_district()
+    df = pd.read_csv('data_cleaned_formated.csv')
+    print(df.info())
+    print(df.head())
