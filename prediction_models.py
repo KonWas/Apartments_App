@@ -12,14 +12,21 @@ from sklearn.metrics import mean_squared_error
 from tensorflow.keras.models import Sequential, load_model
 from tensorflow.keras.layers import Dense, Dropout
 from tensorflow.keras.optimizers import Adam
-from tensorflow.keras.losses import MeanSquaredError
+
+# TODO: get_dummies from pandas for categorical data
 
 def load_and_preprocess_data(filepath):
     data = pd.read_csv(filepath)
-    # data = data[(data['price'] <= 2000000)]
-    # data = data[(data['area'] <= 100)]
     data = data[(data['price'] <= 1250000)]
     data = data[(data['area'] <= 80)]
+    data = data[(data['floor'] <= 29)]
+    data = data[(data['rooms'] <= 7)]
+    data = data[(data['year'] >= 1925)]
+
+    # price per square meter filter
+    data['price_per_sqm'] = data['price'] / data['area']
+    data = data[(data['price_per_sqm'] <= 17000)]
+
     label_encoders = {}
     for column in ['location', 'state', 'market']:
         le = LabelEncoder()
@@ -29,7 +36,7 @@ def load_and_preprocess_data(filepath):
     return data, label_encoders
 
 def prepare_data(data):
-    columns_to_drop = ['price', 'floor', 'total_floors', 'year', 'parking', 'state', 'furnished', 'market']
+    columns_to_drop = ['price']
     y = data['price']
     X = data.drop(columns_to_drop, axis=1)
     scaler_X = StandardScaler()
@@ -39,6 +46,7 @@ def prepare_data(data):
     joblib.dump(scaler_X, 'scaler_X.pkl')
     joblib.dump(scaler_y, 'scaler_y.pkl')
     return X_scaled, y_scaled, scaler_X, scaler_y
+
 
 def load_models():
     models = {
@@ -80,8 +88,11 @@ def build_and_train_nn(X_train, y_train):
     input_dim = X_train.shape[1]
     nn_model = Sequential([
         Dense(128, input_dim=input_dim, activation='relu'),
+        Dropout(0.2),
         Dense(64, activation='relu'),
+        Dropout(0.5),
         Dense(32, activation='relu'),
+        Dropout(0.5),
         Dense(1, activation='linear')
     ])
     nn_model.compile(optimizer=Adam(learning_rate=0.001), loss='mse')
@@ -97,6 +108,17 @@ def evaluate_models(models, X_test, y_test, scaler_y):
         rmse = np.sqrt(mse)
         results[name] = rmse
     return results
+
+# def evaluate_models(models, X_test, y_test, scaler_y):
+#     results = {}
+#     for name, model in models.items():
+#         predictions_scaled = model.predict(X_test)
+#         predictions = scaler_y.inverse_transform(predictions_scaled.reshape(-1, 1))
+#         mse = mean_squared_error(y_test, predictions)
+#         rmse = np.sqrt(mse)
+#         results[name] = rmse
+#     return results
+
 
 def plot_data(df: pd.DataFrame, column: str) -> None:
     # Plot prive vs area for each location on one figure
@@ -148,6 +170,24 @@ def display_sample_predictions(models, X_test, y_test, scaler_y, num_samples=5):
     # Wyświetlanie DataFrame w konsoli
     print(df_results)
 
+def plot_percentage_errors(models, X_test, y_test, scaler_y):
+    for name, model in models.items():
+        predictions = model.predict(X_test)
+        actual = scaler_y.inverse_transform(y_test)
+        predicted = scaler_y.inverse_transform(predictions.reshape(-1, 1))
+        
+        # Calculate percentage errors
+        percentage_errors = 100 * (predicted - actual) / actual
+        
+        # Create a separate plot for each model
+        plt.figure(figsize=(8, 6))
+        plt.hist(percentage_errors, bins=30, alpha=0.7, color='blue')
+        plt.title(f'Distribution of Percentage Errors - {name}')
+        plt.xlabel('Percentage Error (%)')
+        plt.ylabel('Frequency')
+        plt.grid(True)
+        plt.show()
+
 # Main execution block
 train = False  # Change to False if you want to load models instead of training
 data, label_encoders = load_and_preprocess_data('data_cleaned_formated.csv')
@@ -159,14 +199,18 @@ if train:
 else:
     models = load_models()
 
-results = evaluate_models(models, X_test_scaled, y_test_scaled, scaler_y)
+results = evaluate_models(models, X_train_scaled, y_train_scaled, scaler_y)
+# results = evaluate_models(models, X_test_scaled, y_test_scaled, scaler_y)
 print("Models have been trained and saved. RMSE scores are calculated and displayed.")
 for model_name, rmse in results.items():
     print(f"{model_name}: RMSE = {rmse:.2f}")
 plot_results(results)
 
 # Display sample predictions
-display_sample_predictions(models, X_test_scaled, y_test_scaled, scaler_y, num_samples=100)
+display_sample_predictions(models, X_test_scaled, y_test_scaled, scaler_y, num_samples=10)
+
+# Display percentage errors
+all_errors = plot_percentage_errors(models, X_test_scaled, y_test_scaled, scaler_y)
 
 # Display price vs area data
 # plot_data(data, 'location')
