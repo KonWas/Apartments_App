@@ -1,4 +1,0 @@
-etapy:
-1. stworzenie skryptu scrappujacego dane ze strony nieruchomosci.pl
-2. zgromadzenie wszystkich mozliwych informacji z kazdego ogloszenia - bazowa liczba ogloszen w csv to 7382
-3. oczyszczanie danych oraz formatowanie ich
