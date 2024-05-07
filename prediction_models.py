@@ -3,7 +3,7 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
-import joblib  # For saving and loading models
+import joblib
 from sklearn.model_selection import train_test_split, GridSearchCV
 from sklearn.linear_model import LinearRegression
 from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor
@@ -15,6 +15,7 @@ from tensorflow.keras.models import Sequential, load_model
 from tensorflow.keras.layers import Dense, Dropout
 from tensorflow.keras.optimizers import Adam
 
+# opisac biblioteki frameworki gui w mailu
 
 def setup_directories():
     if not os.path.exists('models'):
@@ -218,7 +219,6 @@ def input_pred(location, area, rooms, floor, total_floors, year, parking, state,
     location_encoder = joblib.load('others/location_encoder.pkl')
     state_encoder = joblib.load('others/state_encoder.pkl')
     market_encoder = joblib.load('others/market_encoder.pkl')
-
     scaler_X = joblib.load('others/scaler_X.pkl')
     scaler_y = joblib.load('others/scaler_y.pkl')
 
@@ -235,10 +235,11 @@ def input_pred(location, area, rooms, floor, total_floors, year, parking, state,
     predictions = {}
     for name, model in models.items():
         prediction_scaled = model.predict(input_data_scaled)
-        prediction = scaler_y.inverse_transform(prediction_scaled)
+        prediction = scaler_y.inverse_transform(prediction_scaled.reshape(-1, 1))
         predictions[name] = prediction[0][0]
 
     return predictions
+
 
 
 def display_worst_predictions(models, X_test, y_test, scaler_y, num_worst=10):
@@ -298,3 +299,10 @@ display_sample_predictions(models, X_test_scaled, y_test_scaled, scaler_y, num_s
 # display_worst_predictions(models, X_test_scaled, y_test_scaled, scaler_y, num_worst=10)
 
 # plot_predictions(models, X_test_scaled, y_test_scaled, scaler_y)
+
+
+# input data: Stare Miasto,989000.0,71.0,3,6,6,2000,0,bardzo dobry,1,secondary
+# input data: location, area, rooms, floor, total_floors, year, parking, state, furnished, market
+input_preds = input_pred('Stare Miasto', 35.0, 2, 4, 4, 2000, 0, 'bardzo dobry', 1, 'secondary')
+for model, prediction in input_preds.items():
+    print(f"{model}: {prediction:.2f}")
