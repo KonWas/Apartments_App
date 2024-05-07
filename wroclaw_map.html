@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!-- <!DOCTYPE html>
 <html>
 <head>
     
@@ -25,7 +25,7 @@
             <meta name="viewport" content="width=device-width,
                 initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
             <style>
-                #map_cb7392f37face3a8b3ff7fe1b2bce1c1 {
+                #map_4197288c22afd1c5178f591722a3de1a {
                     position: relative;
                     width: 100.0%;
                     height: 100.0%;
@@ -39,18 +39,18 @@
 <body>
     
     
-            <div class="folium-map" id="map_cb7392f37face3a8b3ff7fe1b2bce1c1" ></div>
+            <div class="folium-map" id="map_4197288c22afd1c5178f591722a3de1a" ></div>
         
 </body>
 <script>
     
     
-            var map_cb7392f37face3a8b3ff7fe1b2bce1c1 = L.map(
-                "map_cb7392f37face3a8b3ff7fe1b2bce1c1",
+            var map_4197288c22afd1c5178f591722a3de1a = L.map(
+                "map_4197288c22afd1c5178f591722a3de1a",
                 {
                     center: [51.107883, 17.038538],
                     crs: L.CRS.EPSG3857,
-                    zoom: 13,
+                    zoom: 14,
                     zoomControl: true,
                     preferCanvas: false,
                 }
@@ -60,34 +60,92 @@
 
         
     
-            var tile_layer_6c5ae95562ac8a68163cc3a44bca7439 = L.tileLayer(
+            var tile_layer_1e28b359ff2f078cf3ec4d4e583ef4a4 = L.tileLayer(
                 "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
-                {"attribution": "\u0026copy; \u003ca href=\"https://www.openstreetmap.org/copyright\"\u003eOpenStreetMap\u003c/a\u003e contributors", "detectRetina": false, "maxNativeZoom": 19, "maxZoom": 19, "minZoom": 0, "noWrap": false, "opacity": 1, "subdomains": "abc", "tms": false}
+                {"attribution": "\u0026copy; \u003ca href=\"https://www.openstreetmap.org/copyright\"\u003eOpenStreetMap\u003c/a\u003e contributors", "detectRetina": false, "maxNativeZoom": 19, "maxZoom": 19, "minZoom": 12, "noWrap": false, "opacity": 1, "subdomains": "abc", "tms": false}
             );
         
     
-            tile_layer_6c5ae95562ac8a68163cc3a44bca7439.addTo(map_cb7392f37face3a8b3ff7fe1b2bce1c1);
+            tile_layer_1e28b359ff2f078cf3ec4d4e583ef4a4.addTo(map_4197288c22afd1c5178f591722a3de1a);
         
     
-            var marker_acfeeba708161eb3a665392f084f1124 = L.marker(
+            var marker_8428bfe1898cc9935cf9617edfb758d7 = L.marker(
                 [51.107883, 17.038538],
                 {}
-            ).addTo(map_cb7392f37face3a8b3ff7fe1b2bce1c1);
+            ).addTo(map_4197288c22afd1c5178f591722a3de1a);
         
     
-        var popup_d544ec94ca53df1609efc26b06392d4d = L.popup({"maxWidth": "100%"});
+        var popup_913dfb3b9b62a789846e15c433722b97 = L.popup({"maxWidth": "100%"});
 
         
             
-                var html_eace395c2e9f0ac83f4ea1d8e39070ce = $(`<div id="html_eace395c2e9f0ac83f4ea1d8e39070ce" style="width: 100.0%; height: 100.0%;">Wrocław City Center</div>`)[0];
-                popup_d544ec94ca53df1609efc26b06392d4d.setContent(html_eace395c2e9f0ac83f4ea1d8e39070ce);
+                var html_ef516006c15471083e4ac61cb88bd26a = $(`<div id="html_ef516006c15471083e4ac61cb88bd26a" style="width: 100.0%; height: 100.0%;">Centrum Wrocławia</div>`)[0];
+                popup_913dfb3b9b62a789846e15c433722b97.setContent(html_ef516006c15471083e4ac61cb88bd26a);
             
         
 
-        marker_acfeeba708161eb3a665392f084f1124.bindPopup(popup_d544ec94ca53df1609efc26b06392d4d)
+        marker_8428bfe1898cc9935cf9617edfb758d7.bindPopup(popup_913dfb3b9b62a789846e15c433722b97)
         ;
 
         
     
 </script>
+</html> -->
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+    <style>html, body {width: 100%; height: 100%; margin: 0; padding: 0;}</style>
+    <style>#map {position: absolute; top: 0; bottom: 0; right: 0; left: 0;}</style>
+    <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.3/dist/leaflet.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.3/dist/leaflet.css"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+</head>
+<body>
+    <div class="folium-map" id="map" ></div>
+    <script>
+        var map = L.map('map', {
+            center: [51.107883, 17.038538],
+            zoom: 14,
+            zoomControl: true,
+            preferCanvas: false
+        });
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+            maxZoom: 19,
+            minZoom: 12,
+            noWrap: false,
+            opacity: 1,
+            subdomains: 'abc'
+        }).addTo(map);
+
+        var markers = {};  // Obiekt przechowujący referencje do markerów
+
+        function addOrUpdateMarker(id, lat, lng) {
+            if (markers[id]) {
+                markers[id].setLatLng([lat, lng]);
+            } else {
+                markers[id] = L.marker([lat, lng]).addTo(map);
+            }
+        }
+
+        function removeMarker(id) {
+            if (markers[id]) {
+                map.removeLayer(markers[id]);
+                delete markers[id];
+            }
+        }
+
+        function removeAllMarkers() {
+            for (var key in markers) {
+                if (markers.hasOwnProperty(key)) {
+                    map.removeLayer(markers[key]);
+                }
+            }
+            markers = {};
+        }
+    </script>
+</body>
 </html>

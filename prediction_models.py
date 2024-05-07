@@ -8,8 +8,7 @@ from sklearn.model_selection import train_test_split, GridSearchCV
 from sklearn.linear_model import LinearRegression
 from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor
 from sklearn.svm import SVR
-from sklearn.preprocessing import StandardScaler, LabelEncoder, OneHotEncoder
-from sklearn.compose import ColumnTransformer
+from sklearn.preprocessing import StandardScaler, LabelEncoder
 from sklearn.metrics import mean_squared_error, mean_absolute_error
 from tensorflow.keras.models import Sequential, load_model
 from tensorflow.keras.layers import Dense, Dropout
@@ -90,8 +89,8 @@ def train_models(X_train, y_train):
         "Linear Regression": LinearRegression(),
         "Random Forest Regressor": RandomForestRegressor(n_estimators=100),
         "Gradient Boosting Regressor": GradientBoostingRegressor(n_estimators=100),
-        "Optimized SVR": optimize_svr(X_train, y_train),  # Optimize SVR during training
-        "Neural Network": build_and_train_nn(X_train, y_train)  # Train and build NN during training
+        "Optimized SVR": optimize_svr(X_train, y_train),
+        "Neural Network": build_and_train_nn(X_train, y_train)
     }
     for name, model in models.items():
         if "Neural Network" not in name:
@@ -249,7 +248,7 @@ def display_worst_predictions(models, X_test, y_test, scaler_y, num_worst=10):
         predicted = scaler_y.inverse_transform(predictions.reshape(-1, 1))
         
         errors = np.abs(predicted - actual)
-        worst_indices = np.argsort(errors.ravel())[-num_worst:][::-1]  # Indices of the largest errors
+        worst_indices = np.argsort(errors.ravel())[-num_worst:][::-1]
 
         worst_predictions = predicted[worst_indices]
         worst_actuals = actual[worst_indices]
@@ -258,6 +257,7 @@ def display_worst_predictions(models, X_test, y_test, scaler_y, num_worst=10):
         print(f"\n{name} - Top {num_worst} Worst Predictions:")
         for i in range(num_worst):
             print(f"Actual: {worst_actuals[i][0]:,.2f}, Predicted: {worst_predictions[i][0]:,.2f}, Error: {worst_errors[i][0]:,.2f}")
+
 
 def plot_predictions(models, X_test, y_test, scaler_y):
     for name, model in models.items():
@@ -273,6 +273,7 @@ def plot_predictions(models, X_test, y_test, scaler_y):
         plt.title(f'Actual vs Predicted - {name}')
         plt.show()
 
+
 # Main execution block
 setup_directories()
 train = False
@@ -285,7 +286,6 @@ if train:
 else:
     models = load_models()
 
-# results = evaluate_models_mae(models, X_train_scaled, y_train_scaled, scaler_y)
 results = evaluate_models_mae(models, X_test_scaled, y_test_scaled, scaler_y)
 print("Models have been trained and saved. RMSE scores are calculated and displayed.")
 for model_name, rmse in results.items():
@@ -294,14 +294,13 @@ plot_results(results)
 
 display_sample_predictions(models, X_test_scaled, y_test_scaled, scaler_y, num_samples=10)
 
-# plot_percentage_errors(models, X_test_scaled, y_test_scaled, scaler_y)
+plot_percentage_errors(models, X_test_scaled, y_test_scaled, scaler_y)
 
-# display_worst_predictions(models, X_test_scaled, y_test_scaled, scaler_y, num_worst=10)
+display_worst_predictions(models, X_test_scaled, y_test_scaled, scaler_y, num_worst=10)
 
-# plot_predictions(models, X_test_scaled, y_test_scaled, scaler_y)
+plot_predictions(models, X_test_scaled, y_test_scaled, scaler_y)
 
 
-# input data: Stare Miasto,989000.0,71.0,3,6,6,2000,0,bardzo dobry,1,secondary
 # input data: location, area, rooms, floor, total_floors, year, parking, state, furnished, market
 input_preds = input_pred('Stare Miasto', 35.0, 2, 4, 4, 2000, 0, 'bardzo dobry', 1, 'secondary')
 for model, prediction in input_preds.items():
