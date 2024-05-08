@@ -37,14 +37,6 @@ def price_area_stats_for_each_location() -> None:
         print(f"Min area: {df[df['location'] == location]['area'].min()}")
         print()
 
-    # Plot price vs area for each location
-    # for location in locations:
-    #     plt.figure(figsize=(10, 6))
-    #     sns.scatterplot(data=df[df['location'] == location], x='area', y='price')
-    #     plt.title(f'Price vs Area in {location}')
-    #     plt.show()
-    # Plot price vs are for each location on one figure
-
     plt.figure(figsize=(10, 6))
     for location in locations:
         sns.scatterplot(data=df[df['location'] == location], x='area', y='price', label=location)
@@ -53,25 +45,58 @@ def price_area_stats_for_each_location() -> None:
     plt.show()
 
 
+def general_data_analysis_seaborn():
+    plt.figure(figsize=(10, 6))
+    sns.histplot(data=df, x='price', bins=30, kde=True)
+    plt.title('Price distribution')
+    plt.show()
+
+    plt.figure(figsize=(10, 6))
+    sns.histplot(data=df, x='area', bins=30, kde=True)
+    plt.title('Area distribution')
+    plt.show()
+
+    plt.figure(figsize=(10, 6))
+    sns.histplot(data=df, x='rooms', bins=10, kde=True)
+    plt.title('Rooms distribution')
+    plt.show()
+
+    plt.figure(figsize=(10, 6))
+    sns.histplot(data=df, x='floor', bins=10, kde=True)
+    plt.title('Floor distribution')
+    plt.show()
+
+    plt.figure(figsize=(10, 6))
+    sns.histplot(data=df, x='price_per_m2', bins=30, kde=True)
+    plt.title('Price per m2 distribution')
+    plt.show()
+
+    plt.figure(figsize=(10, 6))
+    sns.histplot(data=df, x='price_per_m2', bins=30, kde=True)
+    plt.title('Price per m2 distribution')
+    plt.show()
+
+    plt.figure(figsize=(10, 6))
+    sns.histplot(data=df, x='price_per_m2', bins=30, kde=True)
+
 if __name__ == '__main__':
     df = load_data()
 
     print(df.head(5))
 
 
-    # Show unique values in the location, rooms, floor, year, parking, state, furnished, market
     columns_to_show = ['location', 'rooms', 'floor', 'year', 'parking', 'state', 'furnished', 'market']
     for element in columns_to_show:
         show_unique_values(df, element)
 
-    # Plot the data
     columns_to_exclude = ['year', 'state']
     for element in columns_to_show:
         if element not in columns_to_exclude:
             plot_data(df, element)
 
-    # Price and area statistics for each location
     price_area_stats_for_each_location()
+
+    general_data_analysis_seaborn()
 
 
    
