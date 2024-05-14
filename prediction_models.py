@@ -115,7 +115,7 @@ def train_models(X_train, y_train):
     """
     models = {
         "Linear Regression": LinearRegression(),
-        "Random Forest Regressor": RandomForestRegressor(n_estimators=100),
+        "Random Forest Regressor": RandomForestRegressor(n_estimators=100, random_state=42),
         "Gradient Boosting Regressor": GradientBoostingRegressor(n_estimators=100),
         "Optimized SVR": optimize_svr(X_train, y_train),
         "Neural Network": build_and_train_nn(X_train, y_train)
@@ -289,6 +289,8 @@ def display_sample_predictions(models, X_test, y_test, scaler_y, num_samples=5):
     plt.grid(True)
     plt.show()
 
+    df_results.to_csv('sample_results.csv', index=False)
+
     print(df_results)
 
 
@@ -400,10 +402,20 @@ if __name__ == '__main__':
         print(f"{model_name}: MAE = {rmse:.2f}")
     plot_results(results)
 
-    #plot_all_results(models, X_test_scaled, y_test_scaled, scaler_y)
+    plot_all_results(models, X_test_scaled, y_test_scaled, scaler_y)
     display_some_predictions(models, X_test_scaled, y_test_scaled, scaler_y, n=10)
 
-
+    # location,price,area,rooms,floor,total_floors,year,parking,state,furnished,market
+    # location: Stare Miasto
+    # area: 35
+    # rooms: 2
+    # floor: 4
+    # total_floors: 4
+    # year: 2000
+    # parking: No
+    # state: bardzo dobry
+    # furnished: Yes
+    # market: secondary
     input_preds = input_pred('Stare Miasto', 35.0, 2, 4, 4, 2000, 0, 'bardzo dobry', 1, 'secondary')
     for model, prediction in input_preds.items():
         print(f"{model}: {prediction:.2f}")
