@@ -9,10 +9,11 @@ from sklearn.linear_model import LinearRegression
 from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor
 from sklearn.svm import SVR
 from sklearn.preprocessing import StandardScaler, LabelEncoder
-from sklearn.metrics import mean_squared_error, mean_absolute_error
+from sklearn.metrics import mean_absolute_error
 from tensorflow.keras.models import Sequential, load_model
 from tensorflow.keras.layers import Dense, Dropout
 from tensorflow.keras.optimizers import Adam
+from data_analysis import show_unique_values
 
 # scatter plot dla sampli
 # opisanie jak czyscilem dane
@@ -59,6 +60,9 @@ def load_and_preprocess_data(filepath):
     data = data[(data['floor'] <= 29)]
     data = data[(data['rooms'] <= 7)]
     data = data[(data['year'] >= 1925)]
+
+    for column in ['location', 'rooms', 'floor', 'total_floors', 'year', 'parking', 'state', 'furnished', 'market']:
+        show_unique_values(data, column)
 
     # price per square meter filter
     # data['price_per_sqm'] = data['price'] / data['area']
