@@ -5,7 +5,7 @@ import time
 
 
 def get_offers(web_site_content):
-    """Pobiera oferty z zawartości strony."""
+    """Get offer links from the website."""
     soup = BeautifulSoup(web_site_content, 'html.parser')
     offers = soup.find_all('div', class_=lambda value: value and value.startswith('tile tile-tile'))[:-1]
     offer_links = [offer.find('a', class_='tabCtrl')['href'] for offer in offers if offer.find('a', class_='tabCtrl')]
@@ -13,7 +13,7 @@ def get_offers(web_site_content):
 
 
 def scrape_offer_details(url):
-    """Scrapuje szczegóły oferty z podanego adresu URL."""
+    """Scrape offer details from the website"""
     content = open_website(url)
     if content is not None:
         soup = BeautifulSoup(content, 'html.parser')
@@ -47,14 +47,14 @@ def scrape_offer_details(url):
 
 
 def save_to_csv(offer_details):
-    """Zapisuje szczegóły oferty do pliku CSV."""
+    """Save offer details to CSV file."""
     if offer_details:
         df = pd.DataFrame([offer_details])
         df.to_csv('offer_details.csv', index=False, mode='a', header=False)
 
 
 def open_website(url, max_retries=5, delay=5):
-    """Otwiera stronę internetową i zwraca jej zawartość."""
+    """Opens the website and returns its content."""
     # define headers for the request to avoid 403 error
     headers = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3'

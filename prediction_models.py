@@ -15,10 +15,6 @@ from tensorflow.keras.layers import Dense, Dropout
 from tensorflow.keras.optimizers import Adam
 from data_analysis import show_unique_values
 
-# scatter plot dla sampli
-# opisanie jak czyscilem dane
-# opisanie modeli jakie i dlaczego
-# analiza wynikow - wnioski
 
 # -------Directories setup-------
 def setup_directories():
@@ -61,14 +57,9 @@ def load_and_preprocess_data(filepath):
     data = data[(data['rooms'] <= 7)]
     data = data[(data['year'] >= 1925)]
 
+    # for testing purposes
     for column in ['location', 'rooms', 'floor', 'total_floors', 'year', 'parking', 'state', 'furnished', 'market']:
         show_unique_values(data, column)
-
-    # price per square meter filter
-    # data['price_per_sqm'] = data['price'] / data['area']
-    # data = data[(data['price_per_sqm'] <= 17000)]
-    # data = data[(data['price_per_sqm'] >= 1000)]
-    # data.drop('price_per_sqm', axis=1, inplace=True)
 
     label_encoders = {}
     for column in ['location', 'state', 'market']:
@@ -410,16 +401,6 @@ if __name__ == '__main__':
     display_some_predictions(models, X_test_scaled, y_test_scaled, scaler_y, n=10)
 
     # location,price,area,rooms,floor,total_floors,year,parking,state,furnished,market
-    # location: Stare Miasto
-    # area: 35
-    # rooms: 2
-    # floor: 4
-    # total_floors: 4
-    # year: 2000
-    # parking: No
-    # state: bardzo dobry
-    # furnished: Yes
-    # market: secondary
     input_preds = input_pred('Stare Miasto', 35.0, 2, 4, 4, 2000, 0, 'bardzo dobry', 1, 'secondary')
     for model, prediction in input_preds.items():
         print(f"{model}: {prediction:.2f}")

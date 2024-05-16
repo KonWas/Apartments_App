@@ -86,6 +86,10 @@ def clear_format_data() -> None:
     # Change parking to 1 if 'tak' or "garaż" else 0
     data_clean['parking'] = data_clean['parking'].apply(lambda x: 1 if 'tak' in x.lower() or 'garaż' in x.lower() else 0)
 
+    # "bardzo dobry", "wysoki standard", "do wykończenia", "deweloperski", "dobry", "do remontu", "nowe wykończone", "do odświeżenia"
+    # Change state "wysoki standard", "nowe wykończone" to "bardzo dobry", change "do odświeżenia" to "do remontu"
+    data_clean['state'] = data_clean['state'].apply(lambda x: 'bardzo dobry' if 'wysoki standard' in x.lower() or 'nowe wykończone' in x.lower() else 'do remontu' if 'do odświeżenia' in x.lower() else x)
+
     # Change furnished to 1 if 'tak' else 0
     data_clean['furnished'] = data_clean['furnished'].apply(lambda x: 1 if 'tak' in x.lower() else 0)
 
@@ -117,7 +121,6 @@ def location_to_district() -> None:
         "Śródmieście": ["Nadodrze", "Śródmieście", "Plac Grunwaldzki", "Huby", "Przedmieście Świdnickie", "Zaporoska"]
     }
     
-    # Change location to district only
     def find_district(location):
         for district, locations in districts.items():
             if location in locations:
