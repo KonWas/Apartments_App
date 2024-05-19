@@ -381,7 +381,7 @@ def input_pred(location, area, rooms, floor, total_floors, year, parking, state,
 # -------Main-------
 if __name__ == '__main__':
     setup_directories()
-    train = False
+    train = True
     data, label_encoders = load_and_preprocess_data('data_cleaned_formated.csv')
     X_scaled, y_scaled, scaler_X, scaler_y = prepare_data(data)
     X_train_scaled, X_test_scaled, y_train_scaled, y_test_scaled = train_test_split(X_scaled, y_scaled, test_size=0.2, random_state=42)
