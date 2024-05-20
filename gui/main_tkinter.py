@@ -2,15 +2,17 @@ import tkinter as tk
 from tkinter import ttk
 from tkinter import messagebox
 from gui.map import start_pyqt, show_saved_location
+from gui.graphs import price_vs_area, avg_price_per_district, price_distribution, price_vs_rooms, price_vs_year, price_vs_floor
 from shapely.geometry import Point, Polygon
 from prediction_models import input_pred
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
 
 class App(tk.Tk):
     def __init__(self):
         super().__init__()
         self.title("Aplikacja GUI")
-        self.geometry("800x600")
+        self.geometry("580x600")
         self.create_menu()
 
     def create_menu(self):
@@ -46,7 +48,7 @@ class App(tk.Tk):
 
     def open_charts_window(self):
         self.hide_main_frame()
-        ChartsWindow(self)
+        ChartsWindowMenu(self)
 
     def open_prediction_window(self):
         self.hide_main_frame()
@@ -65,17 +67,95 @@ class App(tk.Tk):
     def quit_app(self):
         self.quit()
 
-class ChartsWindow(ttk.Frame):
+class ChartsWindowMenu(ttk.Frame):
     def __init__(self, master):
         super().__init__(master)
         self.master = master
         self.grid(row=0, column=0, sticky=(tk.W, tk.E, tk.N, tk.S))
-        ttk.Label(self, text="Wykresy", font=("Helvetica", 18)).grid(column=0, row=0, pady=10)
-        ttk.Button(self, text="Powrót do Menu", command=self.go_back).grid(column=0, row=1, pady=10)
+
+        # Configure grid to center the content
+        self.grid_columnconfigure(0, weight=1)
+        self.grid_rowconfigure(1, weight=1)
+        
+        # Title label centered
+        title = ttk.Label(self, text="Wykresy", font=("Helvetica", 18))
+        title.grid(row=0, column=0, pady=10)
+
+        # Create a frame for the buttons
+        buttons_frame = ttk.Frame(self)
+        buttons_frame.grid(column=0, row=1, pady=10)
+
+        # Create buttons for different charts in 2 columns, 3 rows
+        self.create_button(buttons_frame, "Cena vs Powierzchnia", self.open_chart_1, 0, 0)
+        self.create_button(buttons_frame, "Przykładowe przewidywania", self.open_chart_2, 0, 1)
+        self.create_button(buttons_frame, "Rozkład cen", self.open_chart_3, 1, 0)
+        self.create_button(buttons_frame, "Cena vs Liczba Pokoi", self.open_chart_4, 1, 1)
+        self.create_button(buttons_frame, "Cena vs Rok Budowy", self.open_chart_5, 2, 0)
+        self.create_button(buttons_frame, "Cena vs Piętro", self.open_chart_6, 2, 1)
+
+        # Return button in top left corner
+        back_button = ttk.Button(self, text="Powrót do Menu", command=self.go_back)
+        back_button.grid(row=0, column=0, padx=10, pady=10, sticky=tk.W)
+
+    def create_button(self, parent, text, command, row, column):
+        button = ttk.Button(parent, text=text, command=command)
+        button.grid(row=row, column=column, padx=10, pady=10, sticky=tk.EW)
+
+    def open_chart_1(self):
+        self.open_chart_window("Cena vs Powierzchnia", price_vs_area)
+
+    def open_chart_2(self):
+        self.open_chart_window("Przykładowe przewidywania", avg_price_per_district)
+
+    def open_chart_3(self):
+        self.open_chart_window("Rozkład cen", price_distribution)
+
+    def open_chart_4(self):
+        self.open_chart_window("Cena vs Liczba Pokoi", price_vs_rooms)
+
+    def open_chart_5(self):
+        self.open_chart_window("Cena vs Rok Budowy", price_vs_year)
+
+    def open_chart_6(self):
+        self.open_chart_window("Cena vs Piętro", price_vs_floor)
+
+    def open_chart_window(self, chart_title, chart_function):
+        ChartWindow(self.master, chart_title, chart_function)
 
     def go_back(self):
         self.destroy()
         self.master.show_main_frame()
+
+class ChartWindow(tk.Toplevel):
+    def __init__(self, master, chart_title, chart_function):
+        super().__init__(master)
+        self.title(chart_title)
+        self.geometry("800x600")
+        self.create_widgets(chart_title, chart_function)
+
+    def create_widgets(self, chart_title, chart_function):
+        content_frame = ttk.Frame(self, padding="10 10 10 10")
+        content_frame.grid(row=0, column=0, sticky=(tk.N, tk.S, tk.W, tk.E))
+
+        self.grid_rowconfigure(0, weight=1)
+        self.grid_columnconfigure(0, weight=1)
+        content_frame.grid_rowconfigure(0, weight=1)
+        content_frame.grid_columnconfigure(0, weight=1)
+
+        title = ttk.Label(content_frame, text=chart_title, font=("Helvetica", 18))
+        title.grid(row=0, column=0, pady=10)
+
+        chart_frame = ttk.Frame(content_frame)
+        chart_frame.grid(row=1, column=0, pady=10)
+
+        fig = chart_function()
+        canvas = FigureCanvasTkAgg(fig, master=chart_frame)
+        canvas.draw()
+        canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
+
+        close_button = ttk.Button(content_frame, text="Zamknij", command=self.destroy)
+        close_button.grid(row=2, column=0, pady=10)
+
 
 class PredictionWindow(ttk.Frame):
     def __init__(self, master):
@@ -97,7 +177,7 @@ class PredictionWindow(ttk.Frame):
         content_frame.grid_rowconfigure(1, weight=1)
 
         # Return button in top left corner
-        self.buttonReturn = ttk.Button(content_frame, text="Powrót", command=self.go_back)
+        self.buttonReturn = ttk.Button(content_frame, text="Powrót do Menu", command=self.go_back)
         self.buttonReturn.grid(row=0, column=0, padx=10, pady=10, sticky=tk.W)
 
         # Title label
