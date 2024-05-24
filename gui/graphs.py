@@ -4,7 +4,8 @@ import seaborn as sns
 from prediction_models import remove_outliers_wider
 
 # Load the data
-data_path = r"/Users/konwas/Documents/university/MSiD/msid_projekt/data_cleaned_formated.csv"
+# data_path = r"/Users/konwas/Documents/university/MSiD/msid_projekt/data_cleaned_formated.csv"
+data_path = r"G:\_sem4_msid\lab\projekt\data_cleaned_formated.csv"
 data = pd.read_csv(data_path)
 
 data = remove_outliers_wider(data)
