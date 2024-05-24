@@ -6,6 +6,80 @@ from gui.graphs import price_vs_area, avg_price_per_district, price_distribution
 from shapely.geometry import Point, Polygon
 from prediction_models import input_pred
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+from tkinter import filedialog
+
+
+class Apartment:
+    def __init__(self, location, price, area, rooms, floor, total_floors, year, parking, state, furnished, market):
+        self.location = location
+        self.price = price
+        self.area = area
+        self.rooms = rooms
+        self.floor = floor
+        self.total_floors = total_floors
+        self.year = year
+        self.parking = parking
+        self.state = state
+        self.furnished = furnished
+        self.market = market
+
+    def __str__(self):
+        return f"Apartment: {self.location}, {self.price}, {self.area}, {self.rooms}, {self.floor}, {self.total_floors}, {self.year}, {self.parking}, {self.state}, {self.furnished}, {self.market}"
+    
+
+class ApartmentsList:
+    def __init__(self):
+        self.apartments = []
+
+    def __len__(self):
+        return len(self.apartments)
+
+    def __iter__(self):
+        return iter(self.apartments)
+
+    def __contains__(self, apartment):
+        return apartment in self.apartments
+
+    def append(self, apartment):
+        self.apartments.append(apartment)
+
+    def get_apartments_by_criteria(self, **kwargs):
+        filtered_apartments = self.apartments
+        if 'location' in kwargs:
+            filtered_apartments = [apartment for apartment in filtered_apartments if apartment.location == kwargs['location']]
+        if 'price_min' in kwargs:
+            filtered_apartments = [apartment for apartment in filtered_apartments if apartment.price >= kwargs['price_min']]
+        if 'price_max' in kwargs:
+            filtered_apartments = [apartment for apartment in filtered_apartments if apartment.price <= kwargs['price_max']]
+        if 'area_min' in kwargs:
+            filtered_apartments = [apartment for apartment in filtered_apartments if apartment.area >= kwargs['area_min']]
+        if 'area_max' in kwargs:
+            filtered_apartments = [apartment for apartment in filtered_apartments if apartment.area <= kwargs['area_max']]
+        if 'rooms_min' in kwargs:
+            filtered_apartments = [apartment for apartment in filtered_apartments if apartment.rooms >= kwargs['rooms_min']]
+        if 'rooms_max' in kwargs:
+            filtered_apartments = [apartment for apartment in filtered_apartments if apartment.rooms <= kwargs['rooms_max']]
+        if 'floor_min' in kwargs:
+            filtered_apartments = [apartment for apartment in filtered_apartments if apartment.floor >= kwargs['floor_min']]
+        if 'floor_max' in kwargs:
+            filtered_apartments = [apartment for apartment in filtered_apartments if apartment.floor <= kwargs['floor_max']]
+        if 'total_floors_min' in kwargs:
+            filtered_apartments = [apartment for apartment in filtered_apartments if apartment.total_floors >= kwargs['total_floors_min']]
+        if 'total_floors_max' in kwargs:
+            filtered_apartments = [apartment for apartment in filtered_apartments if apartment.total_floors <= kwargs['total_floors_max']]
+        if 'year_min' in kwargs:
+            filtered_apartments = [apartment for apartment in filtered_apartments if apartment.year >= kwargs['year_min']]
+        if 'year_max' in kwargs:
+            filtered_apartments = [apartment for apartment in filtered_apartments if apartment.year <= kwargs['year_max']]
+        if 'parking' in kwargs:
+            filtered_apartments = [apartment for apartment in filtered_apartments if apartment.parking == kwargs['parking']]
+        if 'state' in kwargs:
+            filtered_apartments = [apartment for apartment in filtered_apartments if apartment.state == kwargs['state']]
+        if 'furnished' in kwargs:
+            filtered_apartments = [apartment for apartment in filtered_apartments if apartment.furnished == kwargs['furnished']]
+        if 'market' in kwargs:
+            filtered_apartments = [apartment for apartment in filtered_apartments if apartment.market == kwargs['market']]
+        return filtered_apartments
 
 
 class App(tk.Tk):
@@ -407,12 +481,118 @@ class InvestmentsWindow(ttk.Frame):
         super().__init__(master)
         self.master = master
         self.grid(row=0, column=0, sticky=(tk.W, tk.E, tk.N, tk.S))
-        ttk.Label(self, text="Inwestycje", font=("Helvetica", 18)).grid(column=0, row=0, pady=10)
-        ttk.Button(self, text="Powrót do Menu", command=self.go_back).grid(column=0, row=1, pady=10)
+        self.apartments_list = ApartmentsList()
+        self.current_apartments = []
+        self.create_widgets()
+
+    def create_widgets(self):
+        # Create the main layout
+        main_layout = ttk.Frame(self)
+        main_layout.grid(row=0, column=0, sticky=(tk.W, tk.E, tk.N, tk.S))
+
+        # Load button
+        load_button = ttk.Button(main_layout, text="Wczytaj predefiniowany plik mieszkań", command=self.load_predefined_file)
+        load_button.grid(row=0, column=0, padx=10, pady=10, sticky=tk.W)
+
+        # Listbox for apartments
+        self.apartment_listbox = tk.Listbox(main_layout, width=50, height=20)
+        self.apartment_listbox.grid(row=1, column=0, padx=10, pady=10)
+        self.apartment_listbox.bind("<<ListboxSelect>>", self.show_details)
+
+        # Detail section
+        detail_frame = ttk.Frame(main_layout, padding="10 10 10 10")
+        detail_frame.grid(row=1, column=1, padx=10, pady=10, sticky=(tk.W, tk.E, tk.N, tk.S))
+        detail_labels = ["Lokalizacja:", "Cena:", "Powierzchnia:", "Liczba pokoi:", "Rok budowy:", "Piętro:", "Liczba pięter:", "Parking:", "Stan:", "Rynek:", "Umeblowany:"]
+        self.detail_widgets = {}
+        for i, label in enumerate(detail_labels):
+            ttk.Label(detail_frame, text=label).grid(row=i, column=0, sticky=tk.E, padx=5, pady=5)
+            self.detail_widgets[label] = ttk.Label(detail_frame, text="-")
+            self.detail_widgets[label].grid(row=i, column=1, sticky=tk.W, padx=5, pady=5)
+
+        # Filters section
+        filter_frame = ttk.Frame(main_layout, padding="10 10 10 10")
+        filter_frame.grid(row=2, column=0, columnspan=2, sticky=(tk.W, tk.E, tk.N, tk.S))
+        ttk.Label(filter_frame, text="Filtry", font=("Helvetica", 16)).grid(row=0, column=0, columnspan=2)
+
+        self.filters = {
+            "Cena od": tk.IntVar(),
+            "Cena do": tk.IntVar(),
+            "Powierzchnia od": tk.IntVar(),
+            "Powierzchnia do": tk.IntVar(),
+            "Liczba pokoi od": tk.IntVar(),
+            "Liczba pokoi do": tk.IntVar(),
+            "Rok budowy od": tk.IntVar(),
+            "Rok budowy do": tk.IntVar()
+        }
+
+        row = 1
+        for label, var in self.filters.items():
+            ttk.Label(filter_frame, text=label).grid(row=row, column=0, sticky=tk.E, padx=5, pady=5)
+            ttk.Scale(filter_frame, from_=0, to=1000, orient=tk.HORIZONTAL, variable=var).grid(row=row, column=1, padx=5, pady=5, sticky=(tk.W, tk.E))
+            row += 1
+
+        apply_filters_button = ttk.Button(filter_frame, text="Zastosuj filtry", command=self.apply_filters)
+        apply_filters_button.grid(row=row, column=0, columnspan=2, pady=10)
+
+        back_button = ttk.Button(self, text="Powrót do Menu", command=self.go_back)
+        back_button.grid(row=3, column=0, pady=10, sticky=tk.W)
+
+    def load_predefined_file(self):
+        filepath = r"/Users/konwas/Documents/university/MSiD/msid_projekt/data_cleaned_formated.csv"
+        self.load_apartments(filepath)
+
+    def load_apartments(self, filepath):
+        # Load apartments from file
+        with open(filepath, 'r') as file:
+            for line in file:
+                apartment_data = line.strip().split(',')
+                if len(apartment_data) == 11:
+                    apartment = Apartment(*apartment_data)
+                    self.apartments_list.append(apartment)
+                    self.apartment_listbox.insert(tk.END, str(apartment)[:50] + "...")
+
+    def show_details(self, event):
+        selection = event.widget.curselection()
+        if selection:
+            index = selection[0]
+            apartment = self.current_apartments[index]
+            details = [
+                apartment.location,
+                apartment.price,
+                apartment.area,
+                apartment.rooms,
+                apartment.year,
+                apartment.floor,
+                apartment.total_floors,
+                "Tak" if apartment.parking else "Nie",
+                apartment.state,
+                apartment.market,
+                "Tak" if apartment.furnished else "Nie"
+            ]
+            for label, detail in zip(self.detail_widgets.keys(), details):
+                self.detail_widgets[label].config(text=detail)
+
+    def apply_filters(self):
+        # Apply filters to the apartment list
+        filtered_apartments = self.apartments_list.get_apartments_by_criteria(
+            price_min=self.filters["Cena od"].get(),
+            price_max=self.filters["Cena do"].get(),
+            area_min=self.filters["Powierzchnia od"].get(),
+            area_max=self.filters["Powierzchnia do"].get(),
+            rooms_min=self.filters["Liczba pokoi od"].get(),
+            rooms_max=self.filters["Liczba pokoi do"].get(),
+            year_min=self.filters["Rok budowy od"].get(),
+            year_max=self.filters["Rok budowy do"].get()
+        )
+        self.current_apartments = filtered_apartments
+        self.apartment_listbox.delete(0, tk.END)
+        for apartment in filtered_apartments:
+            self.apartment_listbox.insert(tk.END, str(apartment)[:50] + "...")
 
     def go_back(self):
         self.destroy()
         self.master.show_main_frame()
+
 
 def main_tkinter():
     app = App()
