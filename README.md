@@ -12,3 +12,5 @@ Models used for predictions (really basic ML):
 - SVR
 - Simple NN
   
+To run program firs I recommend training the models:
+prediction_models.py change train = True in the main func
