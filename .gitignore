@@ -4,3 +4,8 @@ ___pycache___/
 
 # Ignorowanie plikow dla MAC OS
 .DS_Store
+
+# Ignorowanie plikow pythona
+*.pyc
+*.pyo
+*.pyd
