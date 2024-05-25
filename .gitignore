@@ -1,0 +1,6 @@
+# Ignorowanie folderow
+___pycache___/
+.vscode/
+
+# Ignorowanie plikow dla MAC OS
+.DS_Store
