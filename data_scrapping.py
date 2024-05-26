@@ -2,18 +2,25 @@ import requests
 from bs4 import BeautifulSoup
 import pandas as pd
 import time
+from typing import List, Dict, Union, Optional
 
 
-def get_offers(web_site_content):
-    """Get offer links from the website."""
+def get_offers(web_site_content: str) -> List[str]:
+    """Get offer links from the website.
+    :param web_site_content: HTML content of the website
+    :return: List of offer links
+    """
     soup = BeautifulSoup(web_site_content, 'html.parser')
     offers = soup.find_all('div', class_=lambda value: value and value.startswith('tile tile-tile'))[:-1]
     offer_links = [offer.find('a', class_='tabCtrl')['href'] for offer in offers if offer.find('a', class_='tabCtrl')]
     return offer_links
 
 
-def scrape_offer_details(url):
-    """Scrape offer details from the website"""
+def scrape_offer_details(url: str) -> Optional[Dict[str, Union[str, List[str], Dict[str, str]]]]:
+    """Scrape offer details from the website.
+    :param url: URL of the offer page
+    :return: Dictionary of offer details
+    """
     content = open_website(url)
     if content is not None:
         soup = BeautifulSoup(content, 'html.parser')
@@ -43,19 +50,26 @@ def scrape_offer_details(url):
             'basic_info': basic_info,
             'details': details
         }
-    return offer_details
+        return offer_details
+    return None
 
 
-def save_to_csv(offer_details):
-    """Save offer details to CSV file."""
+def save_to_csv(offer_details: Optional[Dict[str, Union[str, List[str], Dict[str, str]]]]) -> None:
+    """Save offer details to CSV file.
+    :param offer_details: Dictionary of offer details
+    """
     if offer_details:
         df = pd.DataFrame([offer_details])
         df.to_csv('offer_details.csv', index=False, mode='a', header=False)
 
 
-def open_website(url, max_retries=5, delay=5):
-    """Opens the website and returns its content."""
-    # define headers for the request to avoid 403 error
+def open_website(url: str, max_retries: int = 5, delay: int = 5) -> Optional[str]:
+    """Opens the website and returns its content.
+    :param url: URL of the website
+    :param max_retries: Maximum number of retries
+    :param delay: Delay between retries
+    :return: HTML content of the website
+    """
     headers = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3'
     }
@@ -67,20 +81,18 @@ def open_website(url, max_retries=5, delay=5):
                 print("Successfully opened the website.")
                 return response.content
             elif response.status_code == 503:
-                # temporary unavailable
                 print(f"Status code 503. Attempt {attempt+1} of {max_retries}.")
                 time.sleep(delay)
             else:
-                # other status codes
                 print(f"Error: {response.status_code}. Attempt {attempt+1} of {max_retries}.")
                 break
         except requests.exceptions.RequestException as e:
-            # other exceptions such as timeout
             print(f"RequestException: {e}. Attempt {attempt+1} of {max_retries}.")
             time.sleep(delay)
 
     print("Unable to open the website after max retries attempts.")
     return None
+
 
 if __name__ == '__main__':
     universal_url = "https://wroclaw.nieruchomosci-online.pl/szukaj.html?3,mieszkanie,sprzedaz,,Wrocław:17876&p={}&q=%7B%7D"
@@ -95,4 +107,6 @@ if __name__ == '__main__':
             all_offer_links.extend(offer_links)
 
     for offer_link in all_offer_links:
-        save_to_csv(scrape_offer_details(offer_link))
+        offer_details = scrape_offer_details(offer_link)
+        if offer_details:
+            save_to_csv(offer_details)

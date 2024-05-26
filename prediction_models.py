@@ -17,7 +17,7 @@ from data_analysis import show_unique_values
 
 
 # -------Directories setup-------
-def setup_directories():
+def setup_directories() -> None:
     """Create directories for models and other files if they don't exist."""
     if not os.path.exists('models'):
         os.makedirs('models')
@@ -26,7 +26,7 @@ def setup_directories():
 
 
 # -------Data preprocessing-------
-def remove_outliers_wider(df, multiplier=3):
+def remove_outliers_wider(df: pd.DataFrame, multiplier: int = 3) -> pd.DataFrame:
     """Remove outliers from the dataset using the IQR method with a wider range.
     :param df: DataFrame to remove outliers from
     :param multiplier: Multiplier for the IQR range
@@ -43,7 +43,7 @@ def remove_outliers_wider(df, multiplier=3):
     return df
 
 
-def load_and_preprocess_data(filepath):
+def load_and_preprocess_data(filepath: str) -> tuple[pd.DataFrame, dict[str, LabelEncoder]]:
     """Load the dataset from the given filepath, preprocess it and return the preprocessed data and label encoders.
     :param filepath: Filepath to the dataset
     :return: Preprocessed data and label encoders
@@ -57,7 +57,7 @@ def load_and_preprocess_data(filepath):
     data = data[(data['rooms'] <= 7)]
     data = data[(data['year'] >= 1925)]
 
-    # for testing purposes
+    # For testing purposes
     for column in ['location', 'rooms', 'floor', 'total_floors', 'year', 'parking', 'state', 'furnished', 'market']:
         show_unique_values(data, column)
 
@@ -70,7 +70,7 @@ def load_and_preprocess_data(filepath):
     return data, label_encoders
 
 
-def prepare_data(data):
+def prepare_data(data: pd.DataFrame) -> tuple[np.ndarray, np.ndarray, StandardScaler, StandardScaler]:
     """Prepare the data for training by splitting it into features and target, scaling the data and saving the scalers.
     :param data: Preprocessed DataFrame
     :return: Scaled features and target, and the scalers
@@ -88,7 +88,7 @@ def prepare_data(data):
 
 
 # -------Model training and evaluation-------
-def load_models():
+def load_models() -> dict[str, object]:
     """Load the trained models from the files.
     :return: Dictionary of loaded models
     """
@@ -102,7 +102,7 @@ def load_models():
     return models
 
 
-def train_models(X_train, y_train):
+def train_models(X_train: np.ndarray, y_train: np.ndarray) -> dict[str, object]:
     """Train the models and save them to files.
     :param X_train: Scaled features for training
     :param y_train: Scaled target for training
@@ -122,7 +122,7 @@ def train_models(X_train, y_train):
     return models
 
 
-def optimize_svr(X_train, y_train):
+def optimize_svr(X_train: np.ndarray, y_train: np.ndarray) -> SVR:
     """Optimize the SVR model using GridSearchCV and save the best model to a file.
     :param X_train: Scaled features for training
     :param y_train: Scaled target for training
@@ -140,7 +140,7 @@ def optimize_svr(X_train, y_train):
     return best_svr
 
 
-def build_and_train_nn(X_train, y_train):
+def build_and_train_nn(X_train: np.ndarray, y_train: np.ndarray) -> Sequential:
     """Build and train a neural network model using Keras and save it to a file.
     :param X_train: Scaled features for training
     :param y_train: Scaled target for training
@@ -162,13 +162,13 @@ def build_and_train_nn(X_train, y_train):
     return nn_model
 
 
-def evaluate_models(models, X_test, y_test, scaler_y):
-    """Evaluate the models using RMSE and return the results.
+def evaluate_models(models: dict[str, object], X_test: np.ndarray, y_test: np.ndarray, scaler_y: StandardScaler) -> dict[str, float]:
+    """Evaluate the models using MAE and return the results.
     :param models: Dictionary of trained models
     :param X_test: Scaled features for testing
     :param y_test: Scaled target for testing
     :param scaler_y: Target scaler
-    :return: Dictionary of model names and RMSE scores
+    :return: Dictionary of model names and MAE scores
     """
     results = {}
     for name, model in models.items():
@@ -193,21 +193,21 @@ def plot_data(df: pd.DataFrame, column: str) -> None:
 
 
 # -------Plotting the results-------
-def plot_results(results):
+def plot_results(results: dict[str, float]) -> None:
     """Plot the results of the model evaluation.
     :param results: Dictionary of model names and MAE scores
     """
     plt.figure(figsize=(10, 5))
     models = list(results.keys())
-    rmse_values = list(results.values())
-    plt.bar(models, rmse_values, color='blue')
+    mae_values = list(results.values())
+    plt.bar(models, mae_values, color='blue')
     plt.xlabel('Models')
     plt.ylabel('MAE')
     plt.title('Model Comparison based on MAE')
     plt.show()
 
 
-def plot_predictions(models, X_test, y_test, scaler_y):
+def plot_predictions(models: dict[str, object], X_test: np.ndarray, y_test: np.ndarray, scaler_y: StandardScaler) -> None:
     """Plot the actual vs predicted prices for each model.
     :param models: Dictionary of trained models
     :param X_test: Scaled features for testing
@@ -228,7 +228,7 @@ def plot_predictions(models, X_test, y_test, scaler_y):
         plt.show()
 
 
-def plot_percentage_errors(models, X_test, y_test, scaler_y):
+def plot_percentage_errors(models: dict[str, object], X_test: np.ndarray, y_test: np.ndarray, scaler_y: StandardScaler) -> None:
     """Plot the distribution of percentage errors for each model.
     :param models: Dictionary of trained models
     :param X_test: Scaled features for testing
@@ -251,7 +251,7 @@ def plot_percentage_errors(models, X_test, y_test, scaler_y):
         plt.show()
 
 
-def display_sample_predictions(models, X_test, y_test, scaler_y, num_samples=5):
+def display_sample_predictions(models: dict[str, object], X_test: np.ndarray, y_test: np.ndarray, scaler_y: StandardScaler, num_samples: int = 5) -> None:
     """Display sample predictions for a given number of samples.
     :param models: Dictionary of trained models
     :param X_test: Scaled features for testing
@@ -289,7 +289,7 @@ def display_sample_predictions(models, X_test, y_test, scaler_y, num_samples=5):
     print(df_results)
 
 
-def display_worst_predictions(models, X_test, y_test, scaler_y, num_worst=10):
+def display_worst_predictions(models: dict[str, object], X_test: np.ndarray, y_test: np.ndarray, scaler_y: StandardScaler, num_worst: int = 10) -> None:
     """Display the worst predictions for each model.
     :param models: Dictionary of trained models
     :param X_test: Scaled features for testing
@@ -314,8 +314,7 @@ def display_worst_predictions(models, X_test, y_test, scaler_y, num_worst=10):
             print(f"Actual: {worst_actuals[i][0]:,.2f}, Predicted: {worst_predictions[i][0]:,.2f}, Error: {worst_errors[i][0]:,.2f}")
 
 
-
-def plot_all_results(models, X_test, y_test, scaler_y):
+def plot_all_results(models: dict[str, object], X_test: np.ndarray, y_test: np.ndarray, scaler_y: StandardScaler) -> None:
     """Plot the results of the model evaluation.
     :param models: Dictionary of model names and MAE scores
     :param X_test: Scaled features for testing
@@ -326,7 +325,7 @@ def plot_all_results(models, X_test, y_test, scaler_y):
     plot_predictions(models, X_test, y_test, scaler_y)
 
 
-def display_some_predictions(models, X_test, y_test, scaler_y, n=10):
+def display_some_predictions(models: dict[str, object], X_test: np.ndarray, y_test: np.ndarray, scaler_y: StandardScaler, n: int = 10) -> None:
     """Display some predictions for each model.
     :param models: Dictionary of trained models
     :param X_test: Scaled features for testing
@@ -339,7 +338,7 @@ def display_some_predictions(models, X_test, y_test, scaler_y, n=10):
 
 
 # -------Prediction from input-------
-def input_pred(location, area, rooms, floor, total_floors, year, parking, state, furnished, market):
+def input_pred(location: str, area: float, rooms: int, floor: int, total_floors: int, year: int, parking: int, state: str, furnished: int, market: str) -> dict[str, float]:
     """Predict the price for the given input data.
     :param location: Location of the property
     :param area: Area of the property
@@ -393,14 +392,14 @@ if __name__ == '__main__':
 
     results = evaluate_models(models, X_test_scaled, y_test_scaled, scaler_y)
     print("Models have been trained and saved. MAE scores are calculated and displayed.")
-    for model_name, rmse in results.items():
-        print(f"{model_name}: MAE = {rmse:.2f}")
+    for model_name, mae in results.items():
+        print(f"{model_name}: MAE = {mae:.2f}")
     plot_results(results)
 
     plot_all_results(models, X_test_scaled, y_test_scaled, scaler_y)
     display_some_predictions(models, X_test_scaled, y_test_scaled, scaler_y, n=10)
 
-    # location,price,area,rooms,floor,total_floors,year,parking,state,furnished,market
+    # Example input prediction
     input_preds = input_pred('Stare Miasto', 35.0, 2, 4, 4, 2000, 0, 'bardzo dobry', 1, 'secondary')
     for model, prediction in input_preds.items():
         print(f"{model}: {prediction:.2f}")

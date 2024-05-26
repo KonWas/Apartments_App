@@ -1,5 +1,6 @@
 import pandas as pd
 import ast
+from typing import Optional
 
 
 def extract_information() -> None:
@@ -7,32 +8,33 @@ def extract_information() -> None:
     1. Extract the number of rooms, floor, total floors, year, parking, and state from the `basic_info` column.
     2. Extract the furnished and market information from the `detailed_info` column.
     3. Drop unnecessary columns.
-    4. Save the cleaned data to a new CSV file."""
-
+    4. Save the cleaned data to a new CSV file.
+    """
+    
     # Load data
     data = pd.read_csv('offer_details.csv')
 
     # Function to extract information from the `basic_info` column
-    def extract_from_basic_info(info, key):
+    def extract_from_basic_info(info: str, key: str) -> Optional[str]:
         try:
             info_dict = ast.literal_eval(info)
             for item in info_dict:
                 if key in item:
                     return item.split(': ')[1].strip()
-        except:
+        except (ValueError, SyntaxError):
             return None
 
     # Function to extract information from the `detailed_info` column
-    def extract_from_detailed_info(info, key):
+    def extract_from_detailed_info(info: str, key: str) -> str:
         try:
             info_dict = ast.literal_eval(info.replace('\xa0', ' '))
             return info_dict.get(key, 'N/A')
-        except:
+        except (ValueError, SyntaxError):
             return 'N/A'
 
     # Extracting information from the `basic_info` and `detailed_info` columns
     data['rooms'] = data['basic_info'].apply(lambda x: extract_from_basic_info(x, 'Liczba pokoi'))
-    data['floor'] = data['basic_info'].apply(lambda x: extract_from_basic_info(x, 'Piętro').split(' / ')[0])
+    data['floor'] = data['basic_info'].apply(lambda x: extract_from_basic_info(x, 'Piętro').split(' / ')[0] if extract_from_basic_info(x, 'Piętro') else None)
     data['total_floors'] = data['basic_info'].apply(lambda x: extract_from_basic_info(x, 'Piętro').split(' / ')[1] if '/' in extract_from_basic_info(x, 'Piętro') else None)
     data['year'] = data['basic_info'].apply(lambda x: extract_from_basic_info(x, 'Rok budowy'))
     data['parking'] = data['basic_info'].apply(lambda x: extract_from_basic_info(x, 'Miejsce parkingowe'))
@@ -54,8 +56,9 @@ def clear_format_data() -> None:
     1. Remove missing values.
     2. Change 'parter' to 0 in the 'floor' column.
     3. Set all values to the correct data types.
-    4. Save the cleaned and formatted data to a new CSV file."""
-
+    4. Save the cleaned and formatted data to a new CSV file.
+    """
+    
     # Load cleared data
     data = pd.read_csv('data_cleaned.csv')
 
@@ -67,7 +70,7 @@ def clear_format_data() -> None:
     data_clean = data_clean[~data_clean.isin(['-', 'N/A', 'N/A ']).any(axis=1)]
 
     # Display the number of records after removing missing values
-    print(f"Liczba rekordów po usunięciu pustych danych: {len(data_clean)}")
+    print(f"Number of records after removing missing data: {len(data_clean)}")
 
     # Change 'parter' to 0 in the 'floor' column
     data_clean['floor'] = data_clean['floor'].apply(lambda x: 0 if x == 'parter' else x)
@@ -80,14 +83,13 @@ def clear_format_data() -> None:
     data_clean['total_floors'] = data_clean['total_floors'].astype(int)
     data_clean['year'] = data_clean['year'].astype(int)
 
-    # Change location to district only, if splited by comma len is 4 take second element, else take the first element
+    # Change location to district only
     data_clean['location'] = data_clean['location'].apply(lambda x: x.split(',')[1].strip() if len(x.split(',')) == 4 else x.split(',')[0].strip())
 
     # Change parking to 1 if 'tak' or "garaż" else 0
     data_clean['parking'] = data_clean['parking'].apply(lambda x: 1 if 'tak' in x.lower() or 'garaż' in x.lower() else 0)
 
-    # "bardzo dobry", "wysoki standard", "do wykończenia", "deweloperski", "dobry", "do remontu", "nowe wykończone", "do odświeżenia"
-    # Change state "wysoki standard", "nowe wykończone" to "bardzo dobry", change "do odświeżenia" to "do remontu"
+    # Map state values to standardized categories
     data_clean['state'] = data_clean['state'].apply(lambda x: 'bardzo dobry' if 'wysoki standard' in x.lower() or 'nowe wykończone' in x.lower() else 'do remontu' if 'do odświeżenia' in x.lower() else x)
 
     # Change furnished to 1 if 'tak' else 0
@@ -107,12 +109,13 @@ def location_to_district() -> None:
     """Function to change the location to the district only.
     1. If the location is split by a comma and the length is 4, take the second element.
     2. If the location is split by a comma and the length is not 4, take the first element.
-    3. Save the cleaned data to a new CSV file."""
-
+    3. Save the cleaned data to a new CSV file.
+    """
+    
     # Load cleaned and formatted data
     data = pd.read_csv('data_cleaned_formated.csv')
 
-    # Change location to district only
+    # Define districts and their corresponding locations
     districts = {
         "Stare Miasto": ["Stare Miasto", "Ołbin", "Wrocław", "Świdnicka", "Więzienna", "Nożownicza", "Włodkowica"],
         "Krzyki": ["Krzyki", "Partynice", "Wojszyce", "Klecina", "Borek", "Tarnogaj", "Oporów", "Jagodno", "Gaj", "Krzyk", "Księże Małe", "Księże Wielkie", "Poświętne", "Ołtaszyn", "Przedmieście Oławskie"],
@@ -120,8 +123,9 @@ def location_to_district() -> None:
         "Psie Pole": ["Psie Pole", "Swojczyce", "Różanka", "Kowale", "Sołtysowice", "Osobowice", "Karłowice", "Kleczków", "Lipa Piotrowska", "Popowice", "Kępa Mieszczańska", "Brochów", "Bieńkowice", "Szczepin"],
         "Śródmieście": ["Nadodrze", "Śródmieście", "Plac Grunwaldzki", "Huby", "Przedmieście Świdnickie", "Zaporoska"]
     }
-    
-    def find_district(location):
+
+    # Function to find the district based on location
+    def find_district(location: str) -> str:
         for district, locations in districts.items():
             if location in locations:
                 return district

@@ -1,77 +1,14 @@
 import tkinter as tk
-from tkinter import ttk
-from tkinter import messagebox
+from tkinter import ttk, messagebox
+from typing import Callable, Dict, List, Optional, Tuple
 from gui.map import start_pyqt, show_saved_location
 from gui.graphs import price_vs_area, avg_price_per_district, price_distribution, price_vs_rooms, price_vs_year, price_vs_floor
 from shapely.geometry import Point, Polygon
 from prediction_models import input_pred
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-from tkinter import filedialog
 import os
-
-
-class Apartment:
-    def __init__(self, id, location, price, area, rooms, floor, total_floors, year, parking, state, furnished, market):
-        self.id = int(id)
-        self.location = location
-        self.price = float(price)
-        self.area = float(area)
-        self.rooms = int(rooms)
-        self.floor = int(floor)
-        self.total_floors = int(total_floors)
-        self.year = int(year)
-        self.parking = parking
-        self.state = state
-        self.furnished = furnished
-        self.market = market
-
-    def __str__(self):
-        return f"{self.id}, {self.location}, {self.price}zł, {self.area}m2, r{self.rooms}, f{self.floor}, tf{self.total_floors}, y{self.year}, {self.parking}, {self.state}, {self.furnished}, {self.market}"
-    
-
-class ApartmentsList:
-    def __init__(self):
-        self.apartments = []
-
-    def __len__(self):
-        return len(self.apartments)
-
-    def __iter__(self):
-        return iter(self.apartments)
-
-    def __contains__(self, apartment):
-        return apartment in self.apartments
-
-    def append(self, apartment):
-        self.apartments.append(apartment)
-
-    def get_apartments_by_criteria(self, **kwargs):
-        filtered_apartments = self.apartments
-        if 'price_min' in kwargs:
-            filtered_apartments = [apartment for apartment in filtered_apartments if apartment.price >= kwargs['price_min']]
-        if 'price_max' in kwargs:
-            filtered_apartments = [apartment for apartment in filtered_apartments if apartment.price <= kwargs['price_max']]
-        if 'area_min' in kwargs:
-            filtered_apartments = [apartment for apartment in filtered_apartments if apartment.area >= kwargs['area_min']]
-        if 'area_max' in kwargs:
-            filtered_apartments = [apartment for apartment in filtered_apartments if apartment.area <= kwargs['area_max']]
-        if 'rooms_min' in kwargs:
-            filtered_apartments = [apartment for apartment in filtered_apartments if apartment.rooms >= kwargs['rooms_min']]
-        if 'rooms_max' in kwargs:
-            filtered_apartments = [apartment for apartment in filtered_apartments if apartment.rooms <= kwargs['rooms_max']]
-        if 'floor_min' in kwargs:
-            filtered_apartments = [apartment for apartment in filtered_apartments if apartment.floor >= kwargs['floor_min']]
-        if 'floor_max' in kwargs:
-            filtered_apartments = [apartment for apartment in filtered_apartments if apartment.floor <= kwargs['floor_max']]
-        if 'total_floors_min' in kwargs:
-            filtered_apartments = [apartment for apartment in filtered_apartments if apartment.total_floors >= kwargs['total_floors_min']]
-        if 'total_floors_max' in kwargs:
-            filtered_apartments = [apartment for apartment in filtered_apartments if apartment.total_floors <= kwargs['total_floors_max']]
-        if 'year_min' in kwargs:
-            filtered_apartments = [apartment for apartment in filtered_apartments if apartment.year >= kwargs['year_min']]
-        if 'year_max' in kwargs:
-            filtered_apartments = [apartment for apartment in filtered_apartments if apartment.year <= kwargs['year_max']]
-        return filtered_apartments
+from .apartments_classes import ApartmentsList, Apartment
+from PIL import Image, ImageTk
 
 
 class App(tk.Tk):
@@ -80,8 +17,10 @@ class App(tk.Tk):
         self.title("Aplikacja GUI")
         self.geometry("800x700")
         self.create_menu()
+        self.set_window_icon()
 
-    def create_menu(self):
+    def create_menu(self) -> None:
+        """Create the main menu with buttons and logo."""
         self.main_frame = ttk.Frame(self, padding="10 10 10 10")
         self.main_frame.grid(row=0, column=0, sticky=(tk.W, tk.E, tk.N, tk.S))
 
@@ -92,13 +31,17 @@ class App(tk.Tk):
         # Center the title
         self.main_frame.grid_rowconfigure(0, weight=1)
         self.main_frame.grid_columnconfigure(0, weight=1)
-        title = ttk.Label(self.main_frame, text="Menu Główne", font=("Helvetica", 18))
-        title.grid(column=0, row=0, pady=10)
+        
+        # Add logo
+        self.add_logo(self.main_frame)
+
+        # title = ttk.Label(self.main_frame, text="Menu Główne", font=("Helvetica", 18))
+        # title.grid(column=0, row=1, pady=10)
 
         # Create buttons below the title
-        self.main_frame.grid_rowconfigure(1, weight=1)
+        self.main_frame.grid_rowconfigure(2, weight=1)
         buttons_frame = ttk.Frame(self.main_frame)
-        buttons_frame.grid(column=0, row=1, pady=10)
+        buttons_frame.grid(column=0, row=2, pady=10)
 
         self.create_button(buttons_frame, "Wykresy", self.open_charts_window)
         self.create_button(buttons_frame, "Przewidywanie Ceny Mieszkania", self.open_prediction_window)
@@ -108,33 +51,74 @@ class App(tk.Tk):
         exit_button = ttk.Button(self, text="Zamknij", command=self.quit_app)
         exit_button.place(x=10, y=10)
 
-    def create_button(self, parent, text, command):
+    def set_window_icon(self) -> None:
+        """Set the window icon."""
+
+    def create_button(self, parent: ttk.Frame, text: str, command: Callable) -> None:
+        """Helper method to create a button.
+        :param parent: Parent frame for the button
+        :param text: Text displayed on the button
+        :param command: Function to call when the button is clicked
+        """
         button = ttk.Button(parent, text=text, command=command)
         button.pack(pady=10, fill=tk.X)
 
-    def open_charts_window(self):
+    def add_logo(self, parent: ttk.Frame) -> None:
+        """Add the logo to the main menu.
+        :param parent: Parent frame to add the logo to
+        """
+        image_path = os.path.join(os.path.dirname(__file__), "APPartments.png")
+        image = Image.open(image_path)
+
+        # Remove the white background
+        image = image.convert("RGBA")
+        datas = image.getdata()
+
+        new_data = []
+        for item in datas:
+            # Change all white (also shades of whites)
+            # pixels to transparent
+            if item[0] > 200 and item[1] > 200 and item[2] > 200:
+                new_data.append((255, 255, 255, 0))
+            else:
+                new_data.append(item)
+
+        image.putdata(new_data)
+
+        self.logo = ImageTk.PhotoImage(image)
+        logo_label = tk.Label(parent, image=self.logo, background="#f0f0f0")
+        logo_label.grid(column=0, row=0, pady=10)
+
+    def open_charts_window(self) -> None:
+        """Open the window with chart options."""
         self.hide_main_frame()
         ChartsWindowMenu(self)
 
-    def open_prediction_window(self):
+    def open_prediction_window(self) -> None:
+        """Open the prediction window."""
         self.hide_main_frame()
         PredictionWindow(self)
 
-    def open_investments_window(self):
+    def open_investments_window(self) -> None:
+        """Open the investments window."""
         self.hide_main_frame()
         InvestmentsWindow(self)
 
-    def hide_main_frame(self):
+    def hide_main_frame(self) -> None:
+        """Hide the main frame."""
         self.main_frame.grid_forget()
 
-    def show_main_frame(self):
+    def show_main_frame(self) -> None:
+        """Show the main frame."""
         self.main_frame.grid(row=0, column=0, sticky=(tk.W, tk.E, tk.N, tk.S))
 
-    def quit_app(self):
+    def quit_app(self) -> None:
+        """Quit the application."""
         self.quit()
 
+
 class ChartsWindowMenu(ttk.Frame):
-    def __init__(self, master):
+    def __init__(self, master: App):
         super().__init__(master)
         self.master = master
         self.grid(row=0, column=0, sticky=(tk.W, tk.E, tk.N, tk.S))
@@ -142,7 +126,7 @@ class ChartsWindowMenu(ttk.Frame):
         # Configure grid to center the content
         self.grid_columnconfigure(0, weight=1)
         self.grid_rowconfigure(1, weight=1)
-        
+
         # Title label centered
         title = ttk.Label(self, text="Wykresy", font=("Helvetica", 18))
         title.grid(row=0, column=0, pady=10)
@@ -163,43 +147,60 @@ class ChartsWindowMenu(ttk.Frame):
         back_button = ttk.Button(self, text="Powrót do Menu", command=self.go_back)
         back_button.grid(row=0, column=0, padx=10, pady=10, sticky=tk.W)
 
-    def create_button(self, parent, text, command, row, column):
+    def create_button(self, parent: ttk.Frame, text: str, command: Callable, row: int, column: int) -> None:
+        """Helper method to create a button for chart selection.
+        :param parent: Parent frame for the button
+        :param text: Text displayed on the button
+        :param command: Function to call when the button is clicked
+        :param row: Row position of the button
+        :param column: Column position of the button
+        """
         button = ttk.Button(parent, text=text, command=command)
         button.grid(row=row, column=column, padx=10, pady=10, sticky=tk.EW)
 
-    def open_chart_1(self):
+    def open_chart_1(self) -> None:
         self.open_chart_window("Cena vs Powierzchnia", price_vs_area)
 
-    def open_chart_2(self):
+    def open_chart_2(self) -> None:
         self.open_chart_window("Przykładowe przewidywania", avg_price_per_district)
 
-    def open_chart_3(self):
+    def open_chart_3(self) -> None:
         self.open_chart_window("Rozkład cen", price_distribution)
 
-    def open_chart_4(self):
+    def open_chart_4(self) -> None:
         self.open_chart_window("Cena vs Liczba Pokoi", price_vs_rooms)
 
-    def open_chart_5(self):
+    def open_chart_5(self) -> None:
         self.open_chart_window("Cena vs Rok Budowy", price_vs_year)
 
-    def open_chart_6(self):
+    def open_chart_6(self) -> None:
         self.open_chart_window("Cena vs Piętro", price_vs_floor)
 
-    def open_chart_window(self, chart_title, chart_function):
+    def open_chart_window(self, chart_title: str, chart_function: Callable) -> None:
+        """Open a new window to display the selected chart.
+        :param chart_title: Title of the chart window
+        :param chart_function: Function to generate the chart
+        """
         ChartWindow(self.master, chart_title, chart_function)
 
-    def go_back(self):
+    def go_back(self) -> None:
+        """Return to the main menu."""
         self.destroy()
         self.master.show_main_frame()
 
+
 class ChartWindow(tk.Toplevel):
-    def __init__(self, master, chart_title, chart_function):
+    def __init__(self, master: App, chart_title: str, chart_function: Callable):
         super().__init__(master)
         self.title(chart_title)
         self.geometry("800x600")
         self.create_widgets(chart_title, chart_function)
 
-    def create_widgets(self, chart_title, chart_function):
+    def create_widgets(self, chart_title: str, chart_function: Callable) -> None:
+        """Create the widgets for the chart window.
+        :param chart_title: Title of the chart window
+        :param chart_function: Function to generate the chart
+        """
         content_frame = ttk.Frame(self, padding="10 10 10 10")
         content_frame.grid(row=0, column=0, sticky=(tk.N, tk.S, tk.W, tk.E))
 
@@ -224,13 +225,14 @@ class ChartWindow(tk.Toplevel):
 
 
 class PredictionWindow(ttk.Frame):
-    def __init__(self, master):
+    def __init__(self, master: App):
         super().__init__(master)
         self.master = master
         self.grid(row=0, column=0, sticky=(tk.W, tk.E, tk.N, tk.S))
         self.create_widgets()
 
-    def create_widgets(self):
+    def create_widgets(self) -> None:
+        """Create the widgets for the prediction window."""
         # Create main frame to center the content
         content_frame = ttk.Frame(self, padding="10 10 10 10")
         content_frame.grid(row=0, column=0, sticky=(tk.N, tk.S, tk.W, tk.E))
@@ -255,7 +257,7 @@ class PredictionWindow(ttk.Frame):
         form_frame.grid(row=1, column=0, pady=10)
 
         # Labels and entry fields in a single column
-        self.widgets = {
+        self.widgets: Dict[str, tk.Widget] = {
             "Lokalizacja": ttk.Button(form_frame, text="Wybierz lokację z mapy", command=self.open_map),
             "": ttk.Button(form_frame, text="Zobacz lokalizację", command=self.update_location),
             "Powierzchnia": ttk.Entry(form_frame),
@@ -281,8 +283,10 @@ class PredictionWindow(ttk.Frame):
         save_button = ttk.Button(form_frame, text="Zapisz", command=self.save_data)
         save_button.grid(row=len(self.widgets), column=0, columnspan=2, pady=10)
 
-    def validate_data(self):
-        """Validate the data from the form fields."""
+    def validate_data(self) -> List[str]:
+        """Validate the data from the form fields.
+        :return: List of error messages if any validation fails
+        """
         errors = []
 
         # Validate Powierzchnia
@@ -312,30 +316,18 @@ class PredictionWindow(ttk.Frame):
 
         return errors
 
-    def open_predictions_results(self, data):
+    def open_predictions_results(self, data: Dict[str, str]) -> None:
         """Open a new window with predictions results.
-        :param data: Dictionary with the form data.
+        :param data: Dictionary with the form data
         """
         converted_data = [value for key, value in data.items()]
-        location = converted_data[0]
-        area = converted_data[1]
-        rooms = converted_data[2]
-        year = converted_data[3]
-        floor = converted_data[4]
-        total_floors = converted_data[5]
-        parking = converted_data[6]
-        market = converted_data[7]
-        furnished = converted_data[8]
-        state = converted_data[9]
-        predictions = input_pred(location, area, rooms, floor, total_floors, year, parking, state, furnished, market)
+        location, area, rooms, year, floor, total_floors, parking, market, furnished, state = converted_data
+        predictions = input_pred(location, float(area), int(rooms), int(floor), int(total_floors), int(year), int(parking), state, int(furnished), market)
 
         PredictionResultsWindow(self.master, predictions, self)
 
-        # for testing purposes
-        # for model, prediction in predictions.items():
-        #     print(f"{model}: {prediction:.2f}")
-
-    def clear_inputs(self):
+    def clear_inputs(self) -> None:
+        """Clear all input fields in the form."""
         for key, widget in self.widgets.items():
             if isinstance(widget, ttk.Entry) or isinstance(widget, ttk.Spinbox):
                 widget.delete(0, tk.END)
@@ -344,13 +336,13 @@ class PredictionWindow(ttk.Frame):
             elif isinstance(widget, ttk.Checkbutton):
                 widget.state(['!selected'])
 
-    def save_data(self):
+    def save_data(self) -> None:
         """Save the data from the form fields and validate it."""
         errors = self.validate_data()
         if errors:
             messagebox.showerror("Błąd", "\n".join(errors))
             return
-        
+
         dict_translations = {
             "Lokalizacja": "location",
             "": "",
@@ -364,35 +356,34 @@ class PredictionWindow(ttk.Frame):
             "Umeblowany": "furnished",
             "Stan": "state"
         }
-        self.data = {}
+        self.data: Dict[str, str] = {}
         for key, widget in self.widgets.items():
             if key == "":
                 continue
             if isinstance(widget, ttk.Entry):
                 self.data[dict_translations[key]] = widget.get()
             elif isinstance(widget, ttk.Spinbox):
-                self.data[dict_translations[key]] = int(widget.get())
+                self.data[dict_translations[key]] = widget.get()
             elif isinstance(widget, ttk.Combobox):
                 self.data[dict_translations[key]] = widget.get()
             elif isinstance(widget, ttk.Checkbutton):
-                self.data[dict_translations[key]] = 1 if widget.instate(['selected']) else 0
+                self.data[dict_translations[key]] = '1' if widget.instate(['selected']) else '0'
             elif isinstance(widget, ttk.Button):
-                self.data[dict_translations[key]] = self.coords_to_district(show_saved_location())
-                print(show_saved_location())
+                location = show_saved_location()
+                if location:
+                    self.data[dict_translations[key]] = self.coords_to_district(location)
+                    self.current_location_label.config(text=f"{self.data[dict_translations[key]]} ({location[0]:.2f}, {location[1]:.2f})")
 
         self.data['market'] = "primary" if self.data['market'] == "pierwotny" else "secondary"
 
-        # print(self.data)  # Print data to check if it is saved correctly
-
         self.open_predictions_results(self.data)
 
-
-    def open_map(self):
+    def open_map(self) -> None:
         """Open the map window to select the location."""
         start_pyqt()
         self.update_location()
 
-    def update_location(self):
+    def update_location(self) -> None:
         """Update the location field after the map window is closed."""
         location = show_saved_location()
         if location:
@@ -401,36 +392,37 @@ class PredictionWindow(ttk.Frame):
         else:
             self.widgets["Lokalizacja"].config(text="Wybierz lokalizację z mapy")
 
-    def coords_to_district(self, coords):
+    def coords_to_district(self, coords: Tuple[float, float]) -> str:
         """Convert coordinates to district name.
-        :param coords: Tuple with latitude and longitude.
-        :return: District name.
+        :param coords: Tuple with latitude and longitude
+        :return: District name
         """
         lat, lon = coords
 
         districts = {
             "Krzyki": Polygon([(51.060, 16.960), (51.060, 17.080), (51.020, 17.080), (51.020, 17.060), (51.000, 17.060), (51.000, 16.960)]),
             "Stare Miasto": Polygon([(51.120, 17.000), (51.120, 17.040), (51.090, 17.040), (51.090, 17.000), (51.070, 17.000), (51.070, 17.020), (51.090, 17.020), (51.090, 17.000)]),
-            "Fabryczna": Polygon([(51.140, 16.870), (51.140, 17.020), (51.060, 17.020), (51.060, 16.960),(51.000, 16.960), (51.000, 16.870)]),
-            "Psie Pole": Polygon([(51.220, 17.040), (51.220, 17.160), (51.150, 17.160), (51.150, 17.100),(51.110, 17.100), (51.110, 17.040)]),
-            "Śródmieście": Polygon([(51.140, 17.040), (51.140, 17.080), (51.090, 17.080), (51.090, 17.040),(51.070, 17.040), (51.070, 17.080), (51.090, 17.080), (51.090, 17.040)])
+            "Fabryczna": Polygon([(51.140, 16.870), (51.140, 17.020), (51.060, 17.020), (51.060, 16.960), (51.000, 16.960), (51.000, 16.870)]),
+            "Psie Pole": Polygon([(51.220, 17.040), (51.220, 17.160), (51.150, 17.160), (51.150, 17.100), (51.110, 17.100), (51.110, 17.040)]),
+            "Śródmieście": Polygon([(51.140, 17.040), (51.140, 17.080), (51.090, 17.080), (51.090, 17.040), (51.070, 17.040), (51.070, 17.080), (51.090, 17.080), (51.090, 17.040)])
         }
 
         point = Point(lat, lon)
-        
+
         for district, polygon in districts.items():
             if polygon.contains(point):
                 return district
-        
+
         return "Inne"
 
-    def go_back(self):
+    def go_back(self) -> None:
+        """Return to the main menu."""
         self.destroy()
         self.master.show_main_frame()
 
 
 class PredictionResultsWindow(tk.Toplevel):
-    def __init__(self, master, predictions, prediction_window):
+    def __init__(self, master: App, predictions: Dict[str, float], prediction_window: PredictionWindow):
         super().__init__(master)
         self.master = master
         self.prediction_window = prediction_window
@@ -438,7 +430,10 @@ class PredictionResultsWindow(tk.Toplevel):
         self.geometry("400x300")
         self.create_widgets(predictions)
 
-    def create_widgets(self, predictions):
+    def create_widgets(self, predictions: Dict[str, float]) -> None:
+        """Create the widgets for the predictions results window.
+        :param predictions: Dictionary with model names and predicted prices
+        """
         content_frame = ttk.Frame(self, padding="10 10 10 10")
         content_frame.grid(row=0, column=0, sticky=(tk.N, tk.S, tk.W, tk.E))
 
@@ -462,21 +457,23 @@ class PredictionResultsWindow(tk.Toplevel):
         close_button = ttk.Button(content_frame, text="Zamknij", command=self.close_window)
         close_button.grid(row=2, column=0, pady=10)
 
-    def close_window(self):
+    def close_window(self) -> None:
+        """Close the window and clear the prediction form inputs."""
         self.prediction_window.clear_inputs()
         self.destroy()
         self.master.show_main_frame()
 
 
 class InvestmentsWindow(ttk.Frame):
-    def __init__(self, master):
+    def __init__(self, master: App):
         super().__init__(master)
         self.master = master
         self.grid(row=0, column=0, sticky=(tk.W, tk.E, tk.N, tk.S))
         self.apartments_list = ApartmentsList()
         self.create_widgets()
 
-    def create_widgets(self):
+    def create_widgets(self) -> None:
+        """Create the widgets for the investments window."""
         # Create the main layout
         main_layout = ttk.Frame(self)
         main_layout.grid(row=0, column=0, sticky=(tk.W, tk.E, tk.N, tk.S))
@@ -518,7 +515,7 @@ class InvestmentsWindow(ttk.Frame):
         detail_frame = ttk.Frame(main_layout, padding="10 10 10 10")
         detail_frame.grid(row=1, column=1, columnspan=2, padx=10, pady=10, sticky=(tk.W, tk.E, tk.N, tk.S))
         detail_labels = ["Id:", "Lokalizacja:", "Cena:", "Powierzchnia:", "Liczba pokoi:", "Rok budowy:", "Piętro:", "Liczba pięter:", "Parking:", "Stan:", "Rynek:", "Umeblowany:"]
-        self.detail_widgets = {}
+        self.detail_widgets: Dict[str, ttk.Label] = {}
         for i, label in enumerate(detail_labels):
             ttk.Label(detail_frame, text=label).grid(row=i, column=0, sticky=tk.E, padx=5, pady=5)
             self.detail_widgets[label] = ttk.Label(detail_frame, text="-")
@@ -529,7 +526,7 @@ class InvestmentsWindow(ttk.Frame):
         filter_frame.grid(row=2, column=0, columnspan=3, sticky=(tk.W, tk.E, tk.N, tk.S))
         ttk.Label(filter_frame, text="Filtry", font=("Helvetica", 16)).grid(row=0, column=0, columnspan=5)
 
-        self.filters = {
+        self.filters: Dict[str, Tuple[tk.IntVar, tk.BooleanVar]] = {
             "Cena od": (tk.IntVar(), tk.BooleanVar()),
             "Cena do": (tk.IntVar(), tk.BooleanVar()),
             "Powierzchnia od": (tk.IntVar(), tk.BooleanVar()),
@@ -589,10 +586,17 @@ class InvestmentsWindow(ttk.Frame):
         invest_button = ttk.Button(filter_frame, text="Zainwestuj", command=self.invest)
         invest_button.grid(row=row + 5, column=0, columnspan=8, pady=10)
 
-    def update_text_field(self, var):
+    def update_text_field(self, var: tk.IntVar) -> None:
+        """Update the text field with the value from the scale.
+        :param var: Integer variable bound to the scale and text field
+        """
         var.set(int(float(var.get())))
 
-    def toggle_filter(self, var, chk_var):
+    def toggle_filter(self, var: tk.IntVar, chk_var: tk.BooleanVar) -> None:
+        """Enable or disable the filter based on the checkbox state.
+        :param var: Integer variable bound to the scale and text field
+        :param chk_var: Boolean variable bound to the checkbox
+        """
         state = 'normal' if chk_var.get() else 'disabled'
         for widget in self.master.winfo_children():
             if isinstance(widget, ttk.Entry) and widget.cget('textvariable') == str(var):
@@ -600,9 +604,10 @@ class InvestmentsWindow(ttk.Frame):
             elif isinstance(widget, ttk.Scale) and widget.cget('variable') == str(var):
                 widget.config(state=state)
 
- 
-    def load_apartments(self, filepath):
-        # Load apartments from file
+    def load_apartments(self, filepath: str) -> None:
+        """Load apartments from the file and populate the listbox.
+        :param filepath: Path to the file containing apartment data
+        """
         with open(filepath, 'r') as file:
             for line in file:
                 apartment_data = line.strip().split('\t')
@@ -610,10 +615,13 @@ class InvestmentsWindow(ttk.Frame):
                     apartment = Apartment(*apartment_data)
                     self.apartments_list.append(apartment)
                     self.apartment_listbox.insert(tk.END, str(apartment)[:50] + "...")
-        
+
         self.current_apartments = self.apartments_list.apartments
 
-    def show_details(self, event=None):
+    def show_details(self, event: Optional[tk.Event] = None) -> None:
+        """Show details of the selected apartment.
+        :param event: Tkinter event object
+        """
         selection = self.apartment_listbox.curselection()
         if selection:
             index = selection[0]
@@ -636,7 +644,8 @@ class InvestmentsWindow(ttk.Frame):
                 self.detail_widgets[label].config(text=detail)
         self.update_navigation_buttons()
 
-    def apply_filters(self):
+    def apply_filters(self) -> None:
+        """Apply the selected filters to the list of apartments."""
         translations = {
             "Cena od": "price_min",
             "Cena do": "price_max",
@@ -659,7 +668,8 @@ class InvestmentsWindow(ttk.Frame):
             self.apartment_listbox.insert(tk.END, str(apartment)[:50] + "...")
         self.update_navigation_buttons()
 
-    def prev_apartment(self):
+    def prev_apartment(self) -> None:
+        """Navigate to the previous apartment in the list."""
         current_row = self.apartment_listbox.curselection()[0]
         if current_row > 0:
             self.apartment_listbox.selection_clear(0, tk.END)
@@ -667,7 +677,8 @@ class InvestmentsWindow(ttk.Frame):
             self.apartment_listbox.see(current_row - 1)
             self.show_details()
 
-    def next_apartment(self):
+    def next_apartment(self) -> None:
+        """Navigate to the next apartment in the list."""
         current_row = self.apartment_listbox.curselection()[0]
         if current_row < self.apartment_listbox.size() - 1:
             self.apartment_listbox.selection_clear(0, tk.END)
@@ -675,7 +686,8 @@ class InvestmentsWindow(ttk.Frame):
             self.apartment_listbox.see(current_row + 1)
             self.show_details()
 
-    def update_navigation_buttons(self):
+    def update_navigation_buttons(self) -> None:
+        """Update the state of the navigation buttons based on the current selection."""
         if not self.apartment_listbox.curselection():
             self.prev_button.config(state=tk.DISABLED)
             self.next_button.config(state=tk.DISABLED)
@@ -684,16 +696,18 @@ class InvestmentsWindow(ttk.Frame):
             self.prev_button.config(state=tk.NORMAL if current_row > 0 else tk.DISABLED)
             self.next_button.config(state=tk.NORMAL if current_row < self.apartment_listbox.size() - 1 else tk.DISABLED)
 
-    def go_back(self):
+    def go_back(self) -> None:
+        """Return to the main menu."""
         self.destroy()
         self.master.show_main_frame()
 
-    def invest(self):
+    def invest(self) -> None:
+        """Open the investment window for the selected apartment."""
         InvestWindow(self, self.current_apartments[self.apartment_listbox.curselection()[0]])
 
 
 class InvestWindow(tk.Toplevel):
-    def __init__(self, master, apartment):
+    def __init__(self, master: InvestmentsWindow, apartment: Apartment):
         super().__init__(master)
         self.master = master
         self.apartment = apartment
@@ -701,7 +715,8 @@ class InvestWindow(tk.Toplevel):
         self.geometry("400x300")
         self.create_widgets()
 
-    def create_widgets(self):
+    def create_widgets(self) -> None:
+        """Create the widgets for the investment window."""
         content_frame = ttk.Frame(self, padding="10 10 10 10")
         content_frame.grid(row=0, column=0, sticky=(tk.N, tk.S, tk.W, tk.E))
 
@@ -739,7 +754,8 @@ class InvestWindow(tk.Toplevel):
         close_button = ttk.Button(content_frame, text="Zamknij", command=self.close_window)
         close_button.grid(row=5, column=0, columnspan=2, pady=10)
 
-    def calculate_roi(self):
+    def calculate_roi(self) -> None:
+        """Calculate and display the ROI based on the provided investment details."""
         try:
             price = self.apartment.price
             duration = float(self.duration_entry.get())
@@ -756,14 +772,16 @@ class InvestWindow(tk.Toplevel):
         except ValueError:
             messagebox.showerror("Błąd", "Wszystkie wartości muszą być poprawnymi liczbami większymi od zera.")
 
-    def close_window(self):
+    def close_window(self) -> None:
+        """Close the investment window."""
         self.destroy()
-        self.master.deiconify()
 
 
-def main_tkinter():
+def main_tkinter() -> None:
+    """Start the Tkinter application."""
     app = App()
     app.mainloop()
+
 
 if __name__ == "__main__":
     app = App()

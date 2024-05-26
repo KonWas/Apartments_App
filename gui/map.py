@@ -3,19 +3,21 @@ from tkinter import ttk
 import threading
 import sys
 import os
+from typing import Optional, Tuple
 from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QLineEdit, QPushButton
 from PyQt5.QtWebEngineWidgets import QWebEngineView
 from PyQt5.QtCore import QUrl
 from geopy.geocoders import Nominatim
 import folium
 
-location_coords = None
+location_coords: Optional[Tuple[float, float]] = None
 
 # Global instances
-app = None
-map_window = None
+app: Optional[QApplication] = None
+map_window: Optional['MapWindow'] = None
 
-def create_map(filename='gui/wroclaw_map.html'):
+def create_map(filename: str = 'gui/wroclaw_map.html') -> None:
+    """Create a map of Wrocław and save it to a file if it does not already exist."""
     if not os.path.exists(filename):
         start_coords = (51.107883, 17.038538)
         map = folium.Map(location=start_coords, zoom_start=14, min_zoom=12, max_zoom=17)
@@ -23,12 +25,15 @@ def create_map(filename='gui/wroclaw_map.html'):
         map.save(filename)
 
 class MapWindow(QMainWindow):
-    def __init__(self, callback=None):
+    def __init__(self, callback: Optional[callable] = None) -> None:
+        """Initialize the MapWindow."""
         super().__init__()
         self.callback = callback
+        self.current_coords: Optional[Tuple[float, float]] = None
         self.initUI()
 
-    def initUI(self):
+    def initUI(self) -> None:
+        """Set up the user interface for the MapWindow."""
         central_widget = QWidget(self)
         self.setCentralWidget(central_widget)
         layout = QVBoxLayout(central_widget)
@@ -51,28 +56,32 @@ class MapWindow(QMainWindow):
         self.setWindowTitle('Interaktywna Mapa Wrocławia')
         self.setGeometry(600, 300, 800, 600)
 
-    def search_location(self):
+    def search_location(self) -> None:
+        """Search for a location using the address provided by the user."""
         address = self.address_input.text()
         geolocator = Nominatim(user_agent="konwas")
         location = geolocator.geocode(address)
         if location:
             self.update_map(location.latitude, location.longitude)
 
-    def update_map(self, lat, lng):
+    def update_map(self, lat: float, lng: float) -> None:
+        """Update the map to show a marker at the specified latitude and longitude."""
         script = f'''
             addOrUpdateMarker('searchResult', {lat}, {lng});
         '''
         self.browser.page().runJavaScript(script)
         self.current_coords = (lat, lng)
 
-    def save_location(self):
+    def save_location(self) -> None:
+        """Save the current location coordinates and hide the map window."""
         global location_coords
         location_coords = self.current_coords
         self.hide()
         if self.callback:
             self.callback()
 
-def start_pyqt():
+def start_pyqt() -> None:
+    """Start the PyQt application and display the map window."""
     global app, map_window
     create_map()
     if app is None:
@@ -81,22 +90,27 @@ def start_pyqt():
         map_window = MapWindow()
     map_window.show()
 
-def open_map():
-    threading.Thread(target=start_pyqt).start()
+# TESTING PURPOSES
+# def open_map() -> None:
+#     """Open the map in a new thread to avoid blocking the Tkinter main loop."""
+#     threading.Thread(target=start_pyqt).start()
 
-def show_saved_location():
+def show_saved_location() -> Optional[Tuple[float, float]]:
+    """Return the saved location coordinates."""
     return location_coords
 
-def main():
-    root = tk.Tk()
-    root.title("Główne Okno Tkinter")
+# TESTING PURPOSES
+# def main() -> None:
+#     """Main function to start the Tkinter application."""
+#     root = tk.Tk()
+#     root.title("Główne Okno Tkinter")
 
-    mainframe = ttk.Frame(root, padding="3 3 12 12")
-    mainframe.grid(column=0, row=0, sticky=(tk.W, tk.E, tk.N, tk.S))
+#     mainframe = ttk.Frame(root, padding="3 3 12 12")
+#     mainframe.grid(column=0, row=0, sticky=(tk.W, tk.E, tk.N, tk.S))
 
-    ttk.Button(mainframe, text="Otwórz Mapę", command=open_map).grid(column=1, row=1, sticky=tk.W)
+#     ttk.Button(mainframe, text="Otwórz Mapę", command=open_map).grid(column=1, row=1, sticky=tk.W)
 
-    root.mainloop()
+#     root.mainloop()
 
-if __name__ == '__main__':
-    main()
+# if __name__ == '__main__':
+#     main()
