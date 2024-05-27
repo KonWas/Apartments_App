@@ -16,7 +16,7 @@ def get_offers(web_site_content: str) -> List[str]:
     return offer_links
 
 
-def scrape_offer_details(url: str) -> Optional[Dict[str, Union[str, List[str], Dict[str, str]]]]:
+def scrape_offer_details(url: str) -> Optional[Dict[str, str | List[str] | Dict[str, str]]]:
     """Scrape offer details from the website.
     :param url: URL of the offer page
     :return: Dictionary of offer details

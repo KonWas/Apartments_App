@@ -1,13 +1,7 @@
 import tkinter as tk
-from tkinter import ttk, messagebox
-from typing import Callable, Dict, List, Optional, Tuple
-from gui.map import start_pyqt, show_saved_location
-from gui.graphs import price_vs_area, avg_price_per_district, price_distribution, price_vs_rooms, price_vs_year, price_vs_floor
-from shapely.geometry import Point, Polygon
-from prediction_models import input_pred
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+from tkinter import ttk
+from typing import Callable
 import os
-from .apartments_classes import ApartmentsList, Apartment
 from PIL import Image, ImageTk
 from .charts_classes import ChartsWindowMenu
 from .predictions_classes import PredictionWindow
