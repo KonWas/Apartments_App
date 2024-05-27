@@ -2,10 +2,14 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 from prediction_models import remove_outliers_wider
+import os
 
-# Load the data
-# data_path = r"/Users/konwas/Documents/university/MSiD/msid_projekt/data_cleaned_formated.csv"
-data_path = r"G:\_sem4_msid\lab\projekt\data_cleaned_formated.csv"
+# Get the directory of the current file
+current_dir = os.path.dirname(__file__)
+# Go up two levels to reach the project root directory
+project_root = os.path.abspath(os.path.join(current_dir, '..'))
+# Construct the path to the data_cleaned_formated.csv file
+data_path = os.path.join(project_root, 'data_cleaned_formated.csv')
 data = pd.read_csv(data_path)
 
 data = remove_outliers_wider(data)
