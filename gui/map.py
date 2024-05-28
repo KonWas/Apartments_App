@@ -1,6 +1,3 @@
-import tkinter as tk
-from tkinter import ttk
-import threading
 import sys
 import os
 from typing import Optional, Tuple
@@ -10,11 +7,9 @@ from PyQt5.QtCore import QUrl
 from geopy.geocoders import Nominatim
 import folium
 
-location_coords: Optional[Tuple[float, float]] = None
-
-# Global instances
-app: Optional[QApplication] = None
-map_window: Optional['MapWindow'] = None
+location_coords = None
+app = None
+map_window = None
 
 def create_map(filename: str = 'gui/wroclaw_map.html') -> None:
     """Create a map of Wrocław and save it to a file if it does not already exist."""
@@ -25,11 +20,10 @@ def create_map(filename: str = 'gui/wroclaw_map.html') -> None:
         map.save(filename)
 
 class MapWindow(QMainWindow):
-    def __init__(self, callback: Optional[callable] = None) -> None:
+    def __init__(self) -> None:
         """Initialize the MapWindow."""
         super().__init__()
-        self.callback = callback
-        self.current_coords: Optional[Tuple[float, float]] = None
+        self.current_coords = None
         self.initUI()
 
     def initUI(self) -> None:
@@ -77,8 +71,6 @@ class MapWindow(QMainWindow):
         global location_coords
         location_coords = self.current_coords
         self.hide()
-        if self.callback:
-            self.callback()
 
 def start_pyqt() -> None:
     """Start the PyQt application and display the map window."""

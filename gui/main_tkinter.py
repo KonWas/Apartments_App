@@ -11,7 +11,7 @@ from .investments_classes import InvestmentsWindow
 class App(tk.Tk):
     def __init__(self):
         super().__init__()
-        self.title("Aplikacja GUI")
+        self.title("APPartments")
         # On windows, 800x700
         self.geometry("950x740")
         self.create_menu()
@@ -32,9 +32,6 @@ class App(tk.Tk):
         
         # Add logo
         self.add_logo(self.main_frame)
-
-        # title = ttk.Label(self.main_frame, text="Menu Główne", font=("Helvetica", 18))
-        # title.grid(column=0, row=1, pady=10)
 
         # Create buttons below the title
         self.main_frame.grid_rowconfigure(2, weight=1)
@@ -74,8 +71,7 @@ class App(tk.Tk):
 
         new_data = []
         for item in datas:
-            # Change all white (also shades of whites)
-            # pixels to transparent
+            # Change all white pixels to transparent
             if item[0] > 200 and item[1] > 200 and item[2] > 200:
                 new_data.append((255, 255, 255, 0))
             else:
