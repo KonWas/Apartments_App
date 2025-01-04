@@ -14,3 +14,5 @@ Models used for predictions (really basic ML):
   
 To run program, first I recommend training the models:
 prediction_models.py change train = True in the main func
+
+konwas
